@@ -14,12 +14,12 @@ def like_help(text):
 
 def like_exit(text):
     text = fast_normalize(text)
-    return bool(re.match('^(алиса |яндекс )?(выход|хватит|выйти)$', text))
+    return bool(re.match('^(алиса |яндекс )?(выход|хватит( болтать| играть)?|выйти|закончить)$', text))
 
 
 def like_yes(text):
     text = fast_normalize(text)
-    return bool(re.match('^(да|ага|окей|конечно|yes|yep)$', text))
+    return bool(re.match('^(да|ага|окей|ок|конечно|yes|yep|хорошо|ладно)$', text))
 
 
 def like_no(text):
