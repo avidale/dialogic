@@ -1,4 +1,6 @@
 import copy
+import json
+import os
 
 
 class BaseStorage:
@@ -10,3 +12,43 @@ class BaseStorage:
 
     def set(self, key, value):
         self.dict[key] = copy.deepcopy(value)
+
+
+class FileBasedStorage(BaseStorage):
+    def __init__(self, path='session_storage', multifile=True):
+        super(FileBasedStorage, self).__init__()
+        self.path = path
+        self.multifile = multifile
+        if not os.path.exists(path):
+            if self.multifile:
+                os.mkdir(path)
+            else:
+                self.dump_dict(path, {})
+
+    def dump_dict(self, filename, data):
+        with open(filename, 'w') as f:
+            json.dump(data, f, indent=2)
+
+    def load_dict(self, filename):
+        with open(filename, 'r') as f:
+            result = json.load(f)
+        return result
+
+    def get(self, key):
+        if self.multifile:
+            return self.load_dict(os.path.join(self.path, key))
+        else:
+            return self.load_dict(self.path).get(key, {})
+
+    def set(self, key, value):
+        if self.multifile:
+            self.dump_dict(os.path.join(self.path, key), value)
+        else:
+            # todo: enable some concurrency guarantees
+            data = self.load_dict(self.path)
+            data[key] = value
+            self.dump_dict(self.path, data)
+
+
+
+
