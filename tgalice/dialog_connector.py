@@ -1,4 +1,4 @@
-
+import copy
 
 class DialogConnector:
     COMMAND_EXIT = 'exit'
@@ -14,9 +14,11 @@ class DialogConnector:
             source = self.default_source
         user_id, message_text = self.standardize_input(source, message)
         user_object = self.get_user_object(user_id)
+        # todo: maybe just make user_object frozen?
+        old_user_object = copy.deepcopy(user_object)
         updated_user_object, response_text, suggests, response_commands = self.dialog_manager.respond(user_object, message_text)
         # todo: execute response_commands
-        if updated_user_object != user_object:
+        if updated_user_object != old_user_object:
             self.set_user_object(user_id, updated_user_object)
         response = self.standardize_output(source, message, response_text, response_commands, suggests)
         return response
