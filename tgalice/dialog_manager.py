@@ -5,7 +5,7 @@ class COMMANDS:
 
 
 class BaseDialogManager:
-    def respond(self, user_object, message_text):
+    def respond(self, user_object, message_text, metadata):
         updated_user_object = user_object
         response = 'Я не могу на это ответить.'
         suggests = []
@@ -14,7 +14,7 @@ class BaseDialogManager:
 
 
 class StupidDialogManager(BaseDialogManager):
-    def respond(self, user_object, message_text):
+    def respond(self, user_object, message_text, metadata):
         if message_text:
             response = "Вы сказали, '{}'".format(message_text.lower())
         else:

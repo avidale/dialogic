@@ -8,7 +8,7 @@ setuptools.setup(
     version="0.0.1",
     author="David Dale",
     author_email="dale.david@mail.ru",
-    description="yet another wrapper for Telegram bots and Alice skills",
+    description="Yet another common wrapper for Telegram bots and Alice skills",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/avidale/tgalice",
@@ -18,4 +18,5 @@ setuptools.setup(
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],
+    install_requires=['pyTelegramBotAPI']
 )

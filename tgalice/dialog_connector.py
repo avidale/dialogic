@@ -1,5 +1,7 @@
 import copy
+import telebot
 from tgalice.session_storage import BaseStorage
+
 
 class DialogConnector:
     COMMAND_EXIT = 'exit'
@@ -13,11 +15,12 @@ class DialogConnector:
         # todo: support different triggers - not only messages, but calendar events as well
         if source is None:
             source = self.default_source
-        user_id, message_text = self.standardize_input(source, message)
+        user_id, message_text, metadata = self.standardize_input(source, message)
         user_object = self.get_user_object(user_id)
-        # todo: maybe just make user_object frozen?
         old_user_object = copy.deepcopy(user_object)
-        updated_user_object, response_text, suggests, response_commands = self.dialog_manager.respond(user_object, message_text)
+        updated_user_object, response_text, suggests, response_commands = self.dialog_manager.respond(
+            user_object, message_text, metadata
+        )
         # todo: execute response_commands
         if updated_user_object != old_user_object:
             self.set_user_object(user_id, updated_user_object)
@@ -35,15 +38,17 @@ class DialogConnector:
         self.storage.set(user_id, user_object)
 
     def standardize_input(self, source, message):
+        metadata = {}
         if source == 'telegram':
             user_id = source + '__' + message.chat.username
             message_text = message.text
         elif source == 'alice':
             user_id = source + '__' + message['session']['user_id']
             message_text = message['request']['original_utterance']
+            metadata['new_session'] = message.get('session', {}).get('new', False)
         else:
             raise ValueError('Source must be on of {"telegram", "alice"}')
-        return user_id, message_text
+        return user_id, message_text, metadata
 
     def standardize_output(self, source, original_message, response_text, response_commands=None, suggests=None):
         if response_commands:
@@ -53,9 +58,15 @@ class DialogConnector:
         else:
             response_commands = []
         if source == 'telegram':
+            response = {
+                'text': response_text
+            }
             if suggests:
-                raise NotImplementedError()
-            return response_text
+                response['reply_markup'] = telebot.types.ReplyKeyboardMarkup(row_width=min(3, len(suggests)))
+                response['reply_markup'].add(*[telebot.types.KeyboardButton(t) for t in suggests])
+            else:
+                response['reply_markup'] = telebot.types.ReplyKeyboardRemove(selective=False)
+            return response
         elif source == 'alice':
             response = {
                 "version": original_message['version'],
