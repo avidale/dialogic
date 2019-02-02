@@ -1,8 +1,15 @@
 
 
+class COMMANDS:
+    EXIT = 'exit'
+
+
 class BaseDialogManager:
     def respond(self, user_object, message_text):
-        raise NotImplementedError()
+        updated_user_object = user_object
+        response = 'Я не могу на это ответить.'
+        suggests = []
+        commands = []
         return updated_user_object, response, suggests, commands
 
 

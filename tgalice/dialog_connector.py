@@ -1,4 +1,5 @@
 import copy
+from tgalice.session_storage import BaseStorage
 
 class DialogConnector:
     COMMAND_EXIT = 'exit'
@@ -6,7 +7,7 @@ class DialogConnector:
     def __init__(self, dialog_manager, storage=None, default_source='telegram'):
         self.dialog_manager = dialog_manager
         self.default_source = default_source
-        self.storage = storage
+        self.storage = storage or BaseStorage()
 
     def respond(self, message, source=None):
         # todo: support different triggers - not only messages, but calendar events as well
