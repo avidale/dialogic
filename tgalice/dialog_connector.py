@@ -52,9 +52,9 @@ class DialogConnector:
                     raise NotImplementedError('Command "{}" is not implemented'.format(command))
         else:
             response_commands = []
-        if suggests:
-            raise NotImplementedError()
         if source == 'telegram':
+            if suggests:
+                raise NotImplementedError()
             return response_text
         elif source == 'alice':
             response = {
