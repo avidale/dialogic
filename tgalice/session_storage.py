@@ -50,5 +50,23 @@ class FileBasedStorage(BaseStorage):
             self.dump_dict(self.path, data)
 
 
+class MongoBasedStorage(BaseStorage):
+    KEY_NAME = 'key'
+    VALUE_NAME = 'value'
 
+    def __init__(self, database, collection_name='sessions'):
+        super(MongoBasedStorage, self).__init__()
+        self._collection = database.get_collection(collection_name)
 
+    def get(self, key):
+        result = self._collection.find_one({self.KEY_NAME: key})
+        if result is None:
+            return {}
+        return result.get(self.VALUE_NAME, {})
+
+    def set(self, key, value):
+        self._collection.update_one(
+            {self.KEY_NAME: key},
+            {'$set': {self.VALUE_NAME: value}},
+            upsert=True
+        )
