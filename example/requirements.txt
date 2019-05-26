@@ -1,1 +1,1 @@
-tgalice==0.0.1
+tgalice==0.0.2
