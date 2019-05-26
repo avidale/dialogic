@@ -1,5 +1,5 @@
 # tgalice
-This is yet another common Python wrapper for Telegram bots and Alice skills.
+This is yet another common Python wrapper for Telegram bots[^telebot]    and Alice skills.
 
 Currently, it provides:
 - An (almost) unified interface between your bot and Telegram or Alice: `DialogConnector`
@@ -30,3 +30,6 @@ def telegram_response(message):
 
 The [examples](https://github.com/avidale/tgalice/tree/master/example) directory contains more detailed examples 
 of how to create dialogs and serve the bot. 
+
+[^telebot]: The Telegram wrapper is based on the [pyTelegramBotAPI](https://github.com/eternnoir/pyTelegramBotAPI) 
+package. 
