@@ -1,12 +1,17 @@
 # tgalice
-This is yet another common Python wrapper for Telegram bots<sup>[*](#myfootnote1)</sup> and Alice skills.
+This is yet another common Python wrapper for Telegram bots<sup>[*](#footnote1)</sup> and Alice skills.
 
 Currently, it provides:
 - An (almost) unified interface between your bot and Telegram or Alice: `DialogConnector`
 - A number of simple dialogue constructors: `BaseDialogManager` and its flavors
 - A wrapper for storing dialogue state: `BaseStorage` and its flavors
 
-These three components may be combined as follows:
+This [package](https://pypi.org/project/tgalice/) may be installed with 
+```
+pip install tgalice
+```
+
+The three components of `tgalice` may be combined as follows:
 ```python
 import tgalice
 connector = tgalice.dialog_connector.DialogConnector(
@@ -31,5 +36,5 @@ def telegram_response(message):
 The [examples](https://github.com/avidale/tgalice/tree/master/example) directory contains more detailed examples 
 of how to create dialogs and serve the bot. 
 
-<a name="myfootnote1">**</a> The Telegram wrapper is based on the [pyTelegramBotAPI](https://github.com/eternnoir/pyTelegramBotAPI) 
+<a id="footnote1">**</a> The Telegram wrapper is based on the [pyTelegramBotAPI](https://github.com/eternnoir/pyTelegramBotAPI) 
 package. 
