@@ -6,10 +6,11 @@ from tgalice.session_storage import BaseStorage
 class DialogConnector:
     COMMAND_EXIT = 'exit'
     """ This class provides unified interface for both Telegram and Alice applications """
-    def __init__(self, dialog_manager, storage=None, default_source='telegram'):
+    def __init__(self, dialog_manager, storage=None, default_source='telegram', tg_suggests_cols=1):
         self.dialog_manager = dialog_manager
         self.default_source = default_source
         self.storage = storage or BaseStorage()
+        self.tg_suggests_cols = tg_suggests_cols
 
     def respond(self, message, source=None):
         # todo: support different triggers - not only messages, but calendar events as well
@@ -62,7 +63,9 @@ class DialogConnector:
                 'text': response_text
             }
             if suggests:
-                response['reply_markup'] = telebot.types.ReplyKeyboardMarkup(row_width=min(3, len(suggests)))
+                # todo: do smarter row width calculation
+                row_width = min(self.tg_suggests_cols, len(suggests))
+                response['reply_markup'] = telebot.types.ReplyKeyboardMarkup(row_width=row_width)
                 response['reply_markup'].add(*[telebot.types.KeyboardButton(t) for t in suggests])
             else:
                 response['reply_markup'] = telebot.types.ReplyKeyboardRemove(selective=False)
