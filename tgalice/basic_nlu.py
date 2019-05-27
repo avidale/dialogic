@@ -2,7 +2,7 @@ import re
 
 
 def fast_normalize(text):
-    text = re.sub('[^a-zа-я0\-]+', ' ', text.lower())
+    text = re.sub('[^a-zа-я0-9\-]+', ' ', text.lower())
     text = re.sub('\s+', ' ', text).strip()
     return text
 

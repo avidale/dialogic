@@ -36,5 +36,5 @@ def telegram_response(message):
 The [examples](https://github.com/avidale/tgalice/tree/master/example) directory contains more detailed examples 
 of how to create dialogs and serve the bot. 
 
-<a id="footnote1">**</a> The Telegram wrapper is based on the [pyTelegramBotAPI](https://github.com/eternnoir/pyTelegramBotAPI) 
+<a id="footnote1">*</a> The Telegram wrapper is based on the [pyTelegramBotAPI](https://github.com/eternnoir/pyTelegramBotAPI) 
 package. 

@@ -1,7 +1,7 @@
 This example shows how to actually build a bot that can be deployed e.g. on Heroku.
 
-- `q_and_a.py` shows how to create a simple Q&A bot with a text-based config `q_and_a.yaml`.
-- `custom_manager.py` shows how you can track dialogue state (number of messages).
+- `faq.py` shows how to create a simple Q&A bot with a text-based config `faq.yaml`.
+- `state.py` shows how you can create a custom dialog manager and track dialogue state (number of messages).
 
 The file `requirements.txt` describes the packages required to run the bot (only `tgalice` in this example).
 
