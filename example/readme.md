@@ -4,6 +4,7 @@ This example shows how to actually build a bot that can be deployed e.g. on Hero
 
 - `faq.py` shows how to create a simple Q&A bot with a text-based config `faq.yaml`.
 - `state.py` shows how you can create a custom dialog manager and track dialogue state (number of messages).
+- `form.py` shows how to configure a sequence of questions.
 
 The file `requirements.txt` describes the packages required to run the bot 
 (only `tgalice` and `flask` in this example).

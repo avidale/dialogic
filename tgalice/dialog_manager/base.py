@@ -23,10 +23,14 @@ class Response:
 
 class BaseDialogManager:
     """ This class defines the interface of dialog managers with a single `response` function. """
+    def __init__(self, fixed_response='I always answer with this text.', fixed_suggests=None):
+        self.fixed_response = fixed_response
+        self.fixed_suggests = fixed_suggests or []
+
     def respond(self, user_object, message_text, metadata):
         updated_user_object = user_object
-        response = 'I always answer with this text.'
-        suggests = []
+        response = self.fixed_response
+        suggests = self.fixed_suggests
         commands = []
         return updated_user_object, response, suggests, commands
 
@@ -53,6 +57,7 @@ class CascadableDialogManager(BaseDialogManager):
 class CascadeDialogManager(BaseDialogManager):
     """ This dialog manager tries multiple dialog managers in turn, and returns the first successful response. """
     def __init__(self, *managers):
+        super(CascadeDialogManager, self).__init__()
         assert len(managers) > 0
         for manager in managers[:-1]:
             assert isinstance(manager, CascadableDialogManager)

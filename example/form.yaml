@@ -1,0 +1,37 @@
+form_name: 'math_test_form'
+
+start:
+  regexp: 'start (the )?test'
+  # message: Okay, let's start the test! I will ask 3 difficult math questions. Say anything to start.
+  suggests:
+    - Start!
+    - Exit the test
+
+fields:
+  - name: 'name'
+    question: Please tell me your name
+  - name: 'q1'
+    question: Calculate 2 + 2 * 2
+    validate_regexp: '\-?\d+$'
+    validate_message: Please try again. Your answer should be a whole number.
+  - name: 'q2'
+    question: What is larger, log(1 + 2 + 3) or log(1) + log(2) + log(3) ?
+    options:
+      - log(1 + 2 + 3)
+      - log(1) + log(2) + log(3)
+      - they are equal
+      - it depends on the base of the logarithm
+      - some of these expressions are invalid
+    validate_message: The answer should be one of the suggested options.
+  - name: 'q3'
+    question: Calculate (sin(18°) + sin(72°))² - sin(18°)sin(72°) - cos(18°)cos(72°)
+    validate_regexp: '\-?\d+(.\d+)?$'
+    validate_message: Please try again. Your answer should be a whole or a decimal number.
+
+finish:
+  message: Thank you for taking the test! Your results will be graded soon.
+
+exit:
+  suggest: 'Exit the test'
+  regexp: '(exit|quit)( the)? test'
+  message: You have chosen to quit the test. If you want to take it again, say "start the test"
