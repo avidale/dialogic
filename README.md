@@ -16,7 +16,7 @@ The three components of `tgalice` may be combined as follows:
 import tgalice
 connector = tgalice.dialog_connector.DialogConnector(
     dialog_manager=tgalice.dialog_manager.BaseDialogManager(), 
-    storage=tgalice.session_storage.FileBasedStorage(path='sessions')
+    storage=tgalice.session_storage.BaseStorage()
 )
 ```
 Now you can plug both Alice and Telegram into the connector. In the example below, they are served with Flask. 
@@ -31,6 +31,14 @@ def alice_response():
 def telegram_response(message):
     response = connector.respond(message, source='telegram')
     bot.reply_to(message, **response)
+```
+
+To reduce the amount of boilerplate code even more, you can use the `FlaskServer` class, 
+which configures both Alice and Telegram for you, and can also run in pure command line mode 
+(e.g. if you want to test your bot without internet connection).
+```python
+server = tgalice.flask_server.FlaskServer(connector=connector)
+server.parse_args_and_run()
 ```
 
 The [examples](https://github.com/avidale/tgalice/tree/master/example) directory contains more detailed examples 

@@ -3,6 +3,13 @@ import telebot
 from tgalice.session_storage import BaseStorage
 
 
+class SOURCES:
+    TELEGRAM = 'telegram'
+    ALICE = 'alice'
+    TEXT = 'text'
+    unknown_source_error_message = 'Source must be on of {"telegram", "alice", "text"}'
+
+
 class DialogConnector:
     COMMAND_EXIT = 'exit'
     """ This class provides unified interface for both Telegram and Alice applications """
@@ -40,25 +47,31 @@ class DialogConnector:
 
     def standardize_input(self, source, message):
         metadata = {}
-        if source == 'telegram':
+        if source == SOURCES.TELEGRAM:
             user_id = source + '__' + message.chat.username
             message_text = message.text
-        elif source == 'alice':
+        elif source == SOURCES.ALICE:
             user_id = source + '__' + message['session']['user_id']
             message_text = message['request']['original_utterance']
             metadata['new_session'] = message.get('session', {}).get('new', False)
+        elif source == SOURCES.TEXT:
+            user_id = '0'
+            message_text = message
         else:
-            raise ValueError('Source must be on of {"telegram", "alice"}')
+            raise ValueError(SOURCES.unknown_source_error_message)
         return user_id, message_text, metadata
 
     def standardize_output(self, source, original_message, response_text, response_commands=None, suggests=None):
+        has_exit_command = False
         if response_commands:
             for command in response_commands:
-                if command != self.COMMAND_EXIT:
+                if command == self.COMMAND_EXIT:
+                    has_exit_command = True
+                else:
                     raise NotImplementedError('Command "{}" is not implemented'.format(command))
         else:
             response_commands = []
-        if source == 'telegram':
+        if source == SOURCES.TELEGRAM:
             response = {
                 'text': response_text
             }
@@ -70,17 +83,24 @@ class DialogConnector:
             else:
                 response['reply_markup'] = telebot.types.ReplyKeyboardRemove(selective=False)
             return response
-        elif source == 'alice':
+        elif source == SOURCES.ALICE:
             response = {
                 "version": original_message['version'],
                 "session": original_message['session'],
                 "response": {
-                    "end_session": bool(self.COMMAND_EXIT in response_commands),
+                    "end_session": has_exit_command,
                     "text": response_text
                 }
             }
             if suggests:
                 response['response']['buttons'] = [{'title': suggest, 'hide': True} for suggest in suggests]
             return response
+        elif source == SOURCES.TEXT:
+            response = response_text
+            if suggests is not None and len(suggests) > 0:
+                response = response + '\n' + ', '.join(['[{}]'.format(s) for s in suggests])
+            if response_commands is not None and len(response_commands) > 0:
+                response = response + '\n' + ', '.join(['{{{}}}'.format(c) for c in response_commands])
+            return response, has_exit_command
         else:
-            raise ValueError('Source must be on of {"telegram", "alice"}')
+            raise ValueError(SOURCES.unknown_source_error_message)

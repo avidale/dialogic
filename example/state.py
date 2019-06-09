@@ -1,4 +1,3 @@
-import argparse
 import tgalice as ta
 
 
@@ -40,18 +39,10 @@ class ExampleDialogManager(ta.dialog_manager.BaseDialogManager):
             return '{} команд'.format(count)
 
 
-parser = argparse.ArgumentParser(description='Run the bot')
-parser.add_argument('--poll', action='store_true', help='Run the bot locally in polling mode (Telegram only)')
-args = parser.parse_args()
-
-
 if __name__ == '__main__':
     connector = ta.dialog_connector.DialogConnector(
         dialog_manager=ExampleDialogManager(),
         storage=ta.session_storage.BaseStorage()
     )
     server = ta.flask_server.FlaskServer(connector=connector)
-    if args.poll:
-        server.run_local_telegram()
-    else:
-        server.run_server()
+    server.parse_args_and_run()

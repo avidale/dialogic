@@ -1,9 +1,13 @@
+from __future__ import print_function
+
+import argparse
 import json
 import os
 import telebot
+import warnings
 
 from flask import Flask, request
-from tgalice.dialog_connector import DialogConnector
+from tgalice.dialog_connector import DialogConnector, SOURCES
 
 
 class FlaskServer:
@@ -23,21 +27,24 @@ class FlaskServer:
         self.telegram_url = telegram_url
         self.restart_webhook_url = restart_webhook_url
 
-        self.bot = telebot.TeleBot(telegram_token)
         self.connector = connector
         self.app = Flask(__name__)
 
-        self.bot.message_handler(func=lambda message: True)(self.tg_response)
         self.app.route("/" + self.alice_url, methods=['POST'])(self.alice_response)
-        self.app.route('/' + self.telegram_url + self.telegram_token, methods=['POST'])(self.get_tg_message)
-        self.app.route("/" + self.restart_webhook_url)(self.telegram_web_hook)
+        if self.telegram_token is not None:
+            self.bot = telebot.TeleBot(telegram_token)
+            self.bot.message_handler(func=lambda message: True)(self.tg_response)
+            self.app.route('/' + self.telegram_url + self.telegram_token, methods=['POST'])(self.get_tg_message)
+            self.app.route("/" + self.restart_webhook_url)(self.telegram_web_hook)
+        else:
+            self.bot = None
 
     def alice_response(self):
-        response = self.connector.respond(request.json, source='alice')
+        response = self.connector.respond(request.json, source=SOURCES.ALICE)
         return json.dumps(response, ensure_ascii=False, indent=2)
 
     def tg_response(self, message):
-        response = self.connector.respond(message, source='telegram')
+        response = self.connector.respond(message, source=SOURCES.TELEGRAM)
         self.bot.reply_to(message, **response)
 
     def get_tg_message(self):
@@ -50,10 +57,37 @@ class FlaskServer:
         return "Weebhook restarted!", 200
 
     def run_local_telegram(self):
-        self.bot.polling()
+        if self.bot is not None:
+            self.bot.polling()
+        else:
+            raise ValueError('Cannot run Telegram bot, because Telegram token was not found.')
 
     def run_server(self, host="0.0.0.0", port=None):
-        self.telegram_web_hook()
+        if self.telegram_token is not None:
+            self.telegram_web_hook()
+        else:
+            warnings.warn('Telegram token was not found, running for Alice only.')
         if port is None:
             port = int(os.environ.get('PORT', 5000))
         self.app.run(host=host, port=port)
+
+    def run_command_line(self):
+        input_sentence = ''
+        while True:
+            response, need_to_exit = self.connector.respond(input_sentence, source=SOURCES.TEXT)
+            print(response)
+            if need_to_exit:
+                break
+            input_sentence = input('> ')
+
+    def parse_args_and_run(self):
+        parser = argparse.ArgumentParser(description='Run the bot')
+        parser.add_argument('--cli', action='store_true', help='Run the bot locally in command line mode')
+        parser.add_argument('--poll', action='store_true', help='Run the bot locally in polling mode (Telegram only)')
+        args = parser.parse_args()
+        if args.cli:
+            self.run_command_line()
+        elif args.poll:
+            self.run_local_telegram()
+        else:
+            self.run_server()
