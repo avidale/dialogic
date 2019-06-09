@@ -1,4 +1,4 @@
-import tgalice as ta
+import tgalice
 
 
 TEXT_HELP = (
@@ -10,18 +10,18 @@ TEXT_FAREWELL = 'Всего доброго! Если захотите повто
 
 
 if __name__ == '__main__':
-    manager = ta.dialog_manager.CascadeDialogManager(
-        ta.dialog_manager.FAQDialogManager('faq.yaml'),
-        ta.dialog_manager.GreetAndHelpDialogManager(
+    manager = tgalice.dialog_manager.CascadeDialogManager(
+        tgalice.dialog_manager.FAQDialogManager('faq.yaml'),
+        tgalice.dialog_manager.GreetAndHelpDialogManager(
             greeting_message=TEXT_HELP,
             help_message=TEXT_HELP,
             default_message='Я вас не понимаю.',
             exit_message='Всего доброго! Было приятно с вами пообщаться!'
         )
     )
-    connector = ta.dialog_connector.DialogConnector(
+    connector = tgalice.dialog_connector.DialogConnector(
         dialog_manager=manager,
-        storage=ta.session_storage.BaseStorage()
+        storage=tgalice.session_storage.BaseStorage()
     )
-    server = ta.flask_server.FlaskServer(connector=connector)
+    server = tgalice.flask_server.FlaskServer(connector=connector)
     server.parse_args_and_run()

@@ -1,4 +1,4 @@
-import tgalice as ta
+import tgalice
 
 
 TEXT_HELP = (
@@ -9,18 +9,18 @@ TEXT_HELP = (
 TEXT_FAREWELL = 'Всего доброго! Если захотите повторить, скажите "Алиса, включи навык тест tgalice".'
 
 
-class ExampleDialogManager(ta.dialog_manager.BaseDialogManager):
+class ExampleDialogManager(tgalice.dialog_manager.BaseDialogManager):
     def respond(self, user_object, message_text, metadata):
         suggests = ['довольно']
-        count = user_object.get('count', 0) + 1
+        count = user_object.get('count', -1) + 1
         commands = []
-        text = ta.basic_nlu.fast_normalize(message_text)
+        text = tgalice.nlu.basic_nlu.fast_normalize(message_text)
 
-        if not text or ta.basic_nlu.like_help(text) or not user_object or text == '/start':
+        if not text or tgalice.nlu.basic_nlu.like_help(text) or not user_object or text == '/start':
             response = TEXT_HELP
-        elif text == 'довольно' or ta.basic_nlu.like_exit(text):
+        elif text == 'довольно' or tgalice.nlu.basic_nlu.like_exit(text):
             response = TEXT_FAREWELL
-            commands.append(ta.dialog_manager.COMMANDS.EXIT)
+            commands.append(tgalice.dialog_manager.COMMANDS.EXIT)
         else:
             response = 'Вы только что сказали "{}". Всего вы сказали {}.'.format(message_text, self._count(count))
 
@@ -40,9 +40,9 @@ class ExampleDialogManager(ta.dialog_manager.BaseDialogManager):
 
 
 if __name__ == '__main__':
-    connector = ta.dialog_connector.DialogConnector(
+    connector = tgalice.dialog_connector.DialogConnector(
         dialog_manager=ExampleDialogManager(),
-        storage=ta.session_storage.BaseStorage()
+        storage=tgalice.session_storage.BaseStorage()
     )
-    server = ta.flask_server.FlaskServer(connector=connector)
+    server = tgalice.flask_server.FlaskServer(connector=connector)
     server.parse_args_and_run()
