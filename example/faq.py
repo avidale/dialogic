@@ -11,7 +11,7 @@ TEXT_FAREWELL = 'Всего доброго! Если захотите повто
 
 if __name__ == '__main__':
     manager = tgalice.dialog_manager.CascadeDialogManager(
-        tgalice.dialog_manager.FAQDialogManager('faq.yaml'),
+        tgalice.dialog_manager.FAQDialogManager('faq.yaml', matcher='cosine'),
         tgalice.dialog_manager.GreetAndHelpDialogManager(
             greeting_message=TEXT_HELP,
             help_message=TEXT_HELP,

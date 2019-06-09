@@ -3,6 +3,7 @@ import yaml
 
 from collections import Iterable
 from tgalice.nlu import basic_nlu
+from tgalice.nlu.matchers import make_matcher
 from tgalice.dialog_manager.base import CascadableDialogManager
 
 
@@ -18,24 +19,31 @@ class FAQDialogManager(CascadableDialogManager):
             self._cfg = config
         else:
             raise ValueError('Config must be a filename or a list.')
-        if matcher != 'exact':
-            raise ValueError('Non-exact matching is not supported yet.')
+        if isinstance(matcher, str):
+            matcher = make_matcher(matcher)
+        self.matcher = matcher
         self._q2i = {}
         self._i2a = {}
         self._i2s = {}
+        question_keys = []
+        question_labels = []
         for i, pair in enumerate(self._cfg):
             questions = self._extract_string_or_strings(pair, key='q')
             for q in questions:
-                self._q2i[self._normalize(q)] = i
+                q2 = self._normalize(q)
+                self._q2i[q2] = i
+                question_keys.append(q2)
+                question_labels.append(i)
             self._i2a[i] = self._extract_string_or_strings(pair, key='a')
             self._i2s[i] = self._extract_string_or_strings(pair, key='s', allow_empty=True)
+        self.matcher.fit(question_keys, question_labels)
 
     def try_to_respond(self, user_object, message_text, metadata):
         text = self._normalize(message_text)
-        if text not in self._q2i:
+        index, score = self.matcher.match(text)
+        if index is None:
             return None
         commands = []
-        index = self._q2i[text]
         response = random.choice(self._i2a[index])
         suggests = self._i2s.get(index, [])
         return user_object, response, suggests, commands
