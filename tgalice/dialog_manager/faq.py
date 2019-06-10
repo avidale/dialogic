@@ -2,6 +2,7 @@ import random
 import yaml
 
 from collections import Iterable
+
 from ..nlu import basic_nlu
 from ..nlu.matchers import make_matcher
 from .base import CascadableDialogManager

@@ -1,6 +1,7 @@
 import copy
 import telebot
-from tgalice.session_storage import BaseStorage
+
+from .session_storage import BaseStorage
 
 
 class SOURCES:

@@ -2,7 +2,8 @@ import math
 import textdistance
 
 from collections import Counter
-from tgalice.nlu import basic_nlu
+
+from ..nlu import basic_nlu
 
 
 class BaseMatcher:

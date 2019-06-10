@@ -2,6 +2,7 @@ import re
 import yaml
 
 from collections import Mapping
+
 from .base import CascadableDialogManager, Context
 from ..nlu import basic_nlu
 

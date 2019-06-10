@@ -7,7 +7,8 @@ import telebot
 import warnings
 
 from flask import Flask, request
-from tgalice.dialog_connector import DialogConnector, SOURCES
+
+from .dialog_connector import DialogConnector, SOURCES
 
 
 class FlaskServer:
