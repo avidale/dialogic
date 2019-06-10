@@ -27,13 +27,16 @@ class BaseMatcher:
 
 
 class PairwiseMatcher(BaseMatcher):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, text_normalization='fast', **kwargs):
         super(PairwiseMatcher, self).__init__(*args, **kwargs)
+        self.text_normalization = text_normalization
         self._texts = []
         self._labels = []
 
     def preprocess(self, text):
-        raise NotImplementedError()
+        if self.text_normalization == 'fast':
+            text = basic_nlu.fast_normalize(text)
+        return text
 
     def compare(self, one, another):
         raise NotImplementedError()
@@ -47,17 +50,20 @@ class PairwiseMatcher(BaseMatcher):
         return [self.compare(processed, t) for t in self._texts], self._labels
 
 
+class ExactMatcher(PairwiseMatcher):
+    def compare(self, one, another):
+        return float(one == another)
+
+
 class TextDistanceMatcher(PairwiseMatcher):
-    def __init__(self, *args, by_words=True, metric='cosine', normalize='fast', **kwargs):
+    def __init__(self, *args, by_words=True, metric='cosine', **kwargs):
         super(TextDistanceMatcher, self).__init__(*args, **kwargs)
         self.by_words = by_words
         self.metric = metric
-        self.normalize = normalize
         self.fun = getattr(textdistance, metric).normalized_similarity
 
     def preprocess(self, text):
-        if self.normalize == 'fast':
-            text = basic_nlu.fast_normalize(text)
+        text = super(TextDistanceMatcher, self).preprocess(text)
         if self.by_words:
             return text.split()
         return text
@@ -66,17 +72,10 @@ class TextDistanceMatcher(PairwiseMatcher):
         return self.fun(one, another)
 
 
-class ExactMatcher(PairwiseMatcher):
-    def preprocess(self, text):
-        return basic_nlu.fast_normalize(text)
-
-    def compare(self, one, another):
-        return float(one == another)
-
-
 class JaccardMatcher(PairwiseMatcher):
     def preprocess(self, text):
-        return set(basic_nlu.fast_normalize(text).split())
+        text = super(JaccardMatcher, self).preprocess(text)
+        return set(text.split())
 
     def compare(self, one, another):
         intersection = len(one.intersection(another))
@@ -99,6 +98,7 @@ class TFIDFMatcher(PairwiseMatcher):
         self._labels = labels
 
     def preprocess(self, text):
+        text = super(TFIDFMatcher, self).preprocess(text)
         tf = Counter(self._tokenize(text))
         return {w: tf / math.log(self.smooth + self.vocab[w]) for w, tf in tf.items()}
 
