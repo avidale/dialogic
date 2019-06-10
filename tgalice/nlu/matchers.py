@@ -1,4 +1,7 @@
+import math
 import textdistance
+
+from collections import Counter
 from tgalice.nlu import basic_nlu
 
 
@@ -60,7 +63,6 @@ class TextDistanceMatcher(PairwiseMatcher):
         return text
 
     def compare(self, one, another):
-        print(one, another, self.fun(one, another))
         return self.fun(one, another)
 
 
@@ -84,6 +86,42 @@ class JaccardMatcher(PairwiseMatcher):
         return 0.0
 
 
+class TFIDFMatcher(PairwiseMatcher):
+    def __init__(self, *args, smooth=2.0, ngram=1, **kwargs):
+        super(TFIDFMatcher, self).__init__(*args, **kwargs)
+        self.smooth = smooth
+        self.ngram = ngram
+        self.vocab = Counter()
+
+    def fit(self, texts, labels):
+        self.vocab = Counter(w for t in texts for w in self._tokenize(t))
+        self._texts = [self.preprocess(text) for text in texts]
+        self._labels = labels
+
+    def preprocess(self, text):
+        tf = Counter(self._tokenize(text))
+        return {w: tf / math.log(self.smooth + self.vocab[w]) for w, tf in tf.items()}
+
+    def compare(self, one, another):
+        dot = self._dot(one, another)
+        if dot < 1e-6:
+            return 0.0
+        return dot / math.sqrt(self._norm(one) * self._norm(another))
+
+    def _tokenize(self, text):
+        words = text.split()
+        if self.ngram == 1:
+            return words
+        words = ['BOS'] + words + ['EOS']
+        return words + ['_'.join(words[i:(i + self.ngram)]) for i in range(len(words) - self.ngram + 1)]
+
+    def _dot(self, one, another):
+        return sum(v * another.get(k, 0) for k, v in one.items())
+
+    def _norm(self, one):
+        return self._dot(one, one)
+
+
 _matchers = dict()
 
 
@@ -98,3 +136,4 @@ def make_matcher(key, **kwargs):
 register_matcher('exact', lambda **kwargs: ExactMatcher(**kwargs))
 register_matcher('levenshtein', lambda **kwargs: TextDistanceMatcher(by_words=False, metric='levenshtein', **kwargs))
 register_matcher('cosine', lambda **kwargs: TextDistanceMatcher(by_words=True, metric='cosine', **kwargs))
+register_matcher('tf-id', lambda **kwargs: TFIDFMatcher(**kwargs))

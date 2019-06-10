@@ -10,7 +10,7 @@ from tgalice.dialog_manager.base import CascadableDialogManager
 class FAQDialogManager(CascadableDialogManager):
     """ This dialog manager tries to match the input message with one of the questions from its config,
     and if successful, gives the corresponding answer. """
-    def __init__(self, config, matcher='exact', *args, **kwargs):
+    def __init__(self, config, matcher='tf-idf', *args, **kwargs):
         super(FAQDialogManager, self).__init__(*args, **kwargs)
         if isinstance(config, str):
             with open(config, 'r', encoding='utf-8') as f:
