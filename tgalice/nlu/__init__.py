@@ -1,1 +1,1 @@
-from tgalice.nlu import basic_nlu
+from . import basic_nlu, matchers

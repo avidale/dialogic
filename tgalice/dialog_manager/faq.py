@@ -2,9 +2,9 @@ import random
 import yaml
 
 from collections import Iterable
-from tgalice.nlu import basic_nlu
-from tgalice.nlu.matchers import make_matcher
-from tgalice.dialog_manager.base import CascadableDialogManager
+from ..nlu import basic_nlu
+from ..nlu.matchers import make_matcher
+from .base import CascadableDialogManager
 
 
 class FAQDialogManager(CascadableDialogManager):

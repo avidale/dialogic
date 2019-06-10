@@ -1,6 +1,6 @@
 # coding: utf-8
 
-from tgalice import basic_nlu
+from ..nlu import basic_nlu
 
 
 class COMMANDS:

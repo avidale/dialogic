@@ -2,8 +2,8 @@ import re
 import yaml
 
 from collections import Mapping
-from tgalice.dialog_manager.base import CascadableDialogManager, Context
-from tgalice.nlu import basic_nlu
+from .base import CascadableDialogManager, Context
+from ..nlu import basic_nlu
 
 
 class FieldConfig:
