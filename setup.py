@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="tgalice",
-    version="0.0.3",
+    version="0.0.4",
     author="David Dale",
     author_email="dale.david@mail.ru",
     description="Yet another common wrapper for Telegram bots and Alice skills",
