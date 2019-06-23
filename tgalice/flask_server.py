@@ -46,12 +46,10 @@ class FlaskServer:
 
     def alice_response(self):
         if self.collection_for_logs is not None:
-            pass
-            # todo: LoggedMessage.from_alice_request(request.json).save_to_mongo(self.collection_for_logs)
+            LoggedMessage.from_alice(request.json).save_to_mongo(self.collection_for_logs)
         response = self.connector.respond(request.json, source=SOURCES.ALICE)
         if self.collection_for_logs is not None:
-            pass
-            # todo: LoggedMessage.from_alice_response(response).save_to_mongo(self.collection_for_logs)
+            LoggedMessage.from_alice(response).save_to_mongo(self.collection_for_logs)
         return json.dumps(response, ensure_ascii=False, indent=2)
 
     def tg_response(self, message):

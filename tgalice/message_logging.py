@@ -41,4 +41,13 @@ class LoggedMessage:
             **kwargs
         )
 
-    # todo: implement from_alice as well
+    @classmethod
+    def from_alice(cls, message, **kwargs):
+        return cls(
+            text=message['response']['text'] if 'response' in message else message['request']['original_utterance'],
+            user_id=message['session']['user_id'],
+            from_user='response' not in message,
+            data=message,
+            source='alice',
+            **kwargs
+        )
