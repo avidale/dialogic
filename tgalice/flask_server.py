@@ -9,6 +9,7 @@ import warnings
 from flask import Flask, request
 
 from .dialog_connector import DialogConnector, SOURCES
+from .message_logging import LoggedMessage
 
 
 class FlaskServer:
@@ -16,7 +17,8 @@ class FlaskServer:
             self,
             connector: DialogConnector,
             telegram_token=None, base_url=None,
-            alice_url='alice/', telegram_url='tg/', restart_webhook_url='restart_webhook'
+            alice_url='alice/', telegram_url='tg/', restart_webhook_url='restart_webhook',
+            collection_for_logs=None
     ):
         if telegram_token is None:
             telegram_token = os.environ.get('TOKEN')
@@ -29,6 +31,8 @@ class FlaskServer:
         self.restart_webhook_url = restart_webhook_url
 
         self.connector = connector
+        self.collection_for_logs = collection_for_logs
+
         self.app = Flask(__name__)
 
         self.app.route("/" + self.alice_url, methods=['POST'])(self.alice_response)
@@ -41,12 +45,22 @@ class FlaskServer:
             self.bot = None
 
     def alice_response(self):
+        if self.collection_for_logs is not None:
+            pass
+            # todo: LoggedMessage.from_alice_request(request.json).save_to_mongo(self.collection_for_logs)
         response = self.connector.respond(request.json, source=SOURCES.ALICE)
+        if self.collection_for_logs is not None:
+            pass
+            # todo: LoggedMessage.from_alice_response(response).save_to_mongo(self.collection_for_logs)
         return json.dumps(response, ensure_ascii=False, indent=2)
 
     def tg_response(self, message):
+        if self.collection_for_logs is not None:
+            LoggedMessage.from_telegram(message).save_to_mongo(self.collection_for_logs)
         response = self.connector.respond(message, source=SOURCES.TELEGRAM)
-        self.bot.reply_to(message, **response)
+        telegram_response = self.bot.reply_to(message, **response)
+        if self.collection_for_logs is not None:
+            LoggedMessage.from_telegram(telegram_response).save_to_mongo(self.collection_for_logs)
 
     def get_tg_message(self):
         self.bot.process_new_updates([telebot.types.Update.de_json(request.stream.read().decode("utf-8"))])
