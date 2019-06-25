@@ -49,7 +49,7 @@ class DialogConnector:
     def standardize_input(self, source, message):
         metadata = {}
         if source == SOURCES.TELEGRAM:
-            user_id = source + '__' + message.chat.username
+            user_id = source + '__' + str(message.from_user.id)
             message_text = message.text
         elif source == SOURCES.ALICE:
             user_id = source + '__' + message['session']['user_id']
