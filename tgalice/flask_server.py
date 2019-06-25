@@ -44,6 +44,8 @@ class FlaskServer:
         else:
             self.bot = None
 
+        self._processed_telegram_ids = set()
+
     def alice_response(self):
         if self.collection_for_logs is not None:
             LoggedMessage.from_alice(request.json).save_to_mongo(self.collection_for_logs)
@@ -53,6 +55,11 @@ class FlaskServer:
         return json.dumps(response, ensure_ascii=False, indent=2)
 
     def tg_response(self, message):
+        if message.message_id in self._processed_telegram_ids:
+            # avoid duplicate response after the bot starts
+            # todo: log this event
+            return
+        self._processed_telegram_ids.add(message.message_id)
         if self.collection_for_logs is not None:
             LoggedMessage.from_telegram(message).save_to_mongo(self.collection_for_logs)
         response = self.connector.respond(message, source=SOURCES.TELEGRAM)
