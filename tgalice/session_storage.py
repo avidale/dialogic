@@ -2,6 +2,8 @@ import copy
 import json
 import os
 
+from . import database_utils
+
 
 class BaseStorage:
     def __init__(self):
@@ -57,7 +59,7 @@ class MongoBasedStorage(BaseStorage):
     def __init__(self, database, collection_name='sessions'):
         super(MongoBasedStorage, self).__init__()
         self._collection = database.get_collection(collection_name)
-        # todo: check if index exists, and if not, create one
+        database_utils.ensure_mongo_index(index_name=self.KEY_NAME, collection=self._collection)
 
     def get(self, key):
         result = self._collection.find_one({self.KEY_NAME: key})
