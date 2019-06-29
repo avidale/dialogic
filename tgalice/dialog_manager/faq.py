@@ -5,7 +5,7 @@ from collections import Iterable
 
 from ..nlu import basic_nlu
 from ..nlu.matchers import make_matcher
-from .base import CascadableDialogManager
+from .base import CascadableDialogManager, Context, Response
 
 
 class FAQDialogManager(CascadableDialogManager):
@@ -39,15 +39,14 @@ class FAQDialogManager(CascadableDialogManager):
             self._i2s[i] = self._extract_string_or_strings(pair, key='s', allow_empty=True)
         self.matcher.fit(question_keys, question_labels)
 
-    def try_to_respond(self, user_object, message_text, metadata):
-        text = self._normalize(message_text)
+    def try_to_respond(self, ctx: Context):
+        text = self._normalize(ctx.message_text)
         index, score = self.matcher.match(text)
         if index is None:
             return None
-        commands = []
         response = random.choice(self._i2a[index])
         suggests = self._i2s.get(index, [])
-        return user_object, response, suggests, commands
+        return Response(text=response, suggests=suggests)
 
     @staticmethod
     def _extract_string_or_strings(data, key, allow_empty=False):

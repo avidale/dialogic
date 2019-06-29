@@ -1,4 +1,6 @@
 # coding: utf-8
+import copy
+import typing
 
 from ..nlu import basic_nlu
 
@@ -9,30 +11,32 @@ class COMMANDS:
 
 class Context:
     def __init__(self, user_object, message_text, metadata):
-        self.user_object = user_object
+        self._user_object = copy.deepcopy(user_object)
         self.message_text = message_text
         self.metadata = metadata
-        # todo: compare old and new user objects
+
+    @property
+    def user_object(self):
+        return copy.deepcopy(self._user_object)
 
 
 class Response:
-    def __init__(self, response, suggests=None, commands=None):
-        pass
-    # todo: use this class instead of 4 outputs
+    def __init__(self, text, suggests=None, commands=None, voice=None, user_object=None, confidence=0.5):
+        self.text = text
+        self.suggests = suggests or []
+        self.commands = commands or []
+        self.voice = voice if voice is not None else text
+        self.updated_user_object = user_object
+        self.confidence = confidence
 
 
 class BaseDialogManager:
     """ This class defines the interface of dialog managers with a single `response` function. """
-    def __init__(self, fixed_response='I always answer with this text.', fixed_suggests=None):
-        self.fixed_response = fixed_response
-        self.fixed_suggests = fixed_suggests or []
+    def __init__(self, default_message='I dont\'t understand.'):
+        self.default_message = default_message
 
-    def respond(self, user_object, message_text, metadata):
-        updated_user_object = user_object
-        response = self.fixed_response
-        suggests = self.fixed_suggests
-        commands = []
-        return updated_user_object, response, suggests, commands
+    def respond(self, ctx: Context):
+        return Response(text=self.default_message)
 
 
 class CascadableDialogManager(BaseDialogManager):
@@ -40,18 +44,18 @@ class CascadableDialogManager(BaseDialogManager):
     The `method try_to_respond` is like `respond`, but may also return None.
     It is expected to be used with CascadeDialogManager.
     """
-    def __init__(self, *args, default_message='I don\'t understand', **kwargs):
+    def __init__(self, *args, **kwargs):
         super(CascadableDialogManager, self).__init__(*args, **kwargs)
-        self.default_message = default_message
 
-    def try_to_respond(self, *args, **kwargs):
+    def try_to_respond(self, ctx: Context) -> typing.Union[Response, None]:
+        """ This method should return None or a valid Response """
         raise NotImplementedError()
 
-    def respond(self, user_object, message_text, metadata):
-        response = self.try_to_respond(user_object, message_text, metadata)
-        if response is not None:
+    def respond(self, ctx):
+        response = self.try_to_respond(ctx)
+        if isinstance(response, Response):
             return response
-        return user_object, self.default_message, [], []
+        return Response(text=self.default_message)
 
 
 class CascadeDialogManager(BaseDialogManager):
@@ -81,14 +85,13 @@ class GreetAndHelpDialogManager(CascadableDialogManager):
         self.help_message = help_message
         self.exit_message = exit_message
 
-    def try_to_respond(self, user_object, message_text, metadata):
-        context = Context(user_object=user_object, message_text=message_text, metadata=metadata)
-        if self.is_first_message(context):
-            return user_object, self.greeting_message, [], []
-        if self.is_like_help(context):
-            return user_object, self.help_message, [], []
-        if self.exit_message is not None and self.is_like_exit(context):
-            return user_object, self.exit_message, [], [COMMANDS.EXIT]
+    def try_to_respond(self, ctx: Context):
+        if self.is_first_message(ctx):
+            return Response(text=self.greeting_message)
+        if self.is_like_help(ctx):
+            return Response(text=self.help_message)
+        if self.exit_message is not None and self.is_like_exit(ctx):
+            return Response(text=self.exit_message, commands=[COMMANDS.EXIT])
         return None
 
     def is_first_message(self, context):

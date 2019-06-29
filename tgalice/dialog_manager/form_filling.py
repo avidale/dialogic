@@ -3,7 +3,7 @@ import yaml
 
 from collections import Mapping
 
-from .base import CascadableDialogManager, Context
+from .base import CascadableDialogManager, Context, Response
 from ..nlu import basic_nlu, matchers
 
 
@@ -57,25 +57,25 @@ class FormFillingDialogManager(CascadableDialogManager):
         super(FormFillingDialogManager, self).__init__(*args, **kwargs)
         self.config = FormConfig(config)
 
-    def try_to_respond(self, user_object, message_text, metadata):
-        context = Context(user_object=user_object, message_text=message_text, metadata=metadata)
-        normalized = basic_nlu.fast_normalize(message_text)
+    def try_to_respond(self, ctx: Context):
+        user_object = ctx.user_object
+        normalized = basic_nlu.fast_normalize(ctx.message_text)
         form = user_object.get('forms', {}).get(self.config.form_name, {})
         if form.get('is_active'):
             if self.config.exit_regexp and re.match(self.config.exit_regexp, normalized):
                 form['is_active'] = False
-                return user_object, self.config.exit_message, [], []
+                return Response(text=self.config.exit_message, user_object=user_object)
             question_id = form['next_question']
-            validated_answer = self.validate_answer(form, message_text)
+            validated_answer = self.validate_answer(form, ctx.message_text)
             if validated_answer is not None:
                 form['fields'][self.config.fields[question_id].name] = validated_answer
                 next_question_id = question_id + 1
                 if next_question_id >= self.config.num_fields:
                     form['is_active'] = False
-                    result = self.handle_completed_form(form, context)
+                    result = self.handle_completed_form(form, ctx)
                     if result is not None:
                         return result
-                    return user_object, self.config.finish_message, [], []
+                    return Response(text=self.config.finish_message, user_object=user_object)
                 form['next_question'] = next_question_id
                 return self.ask_question(next_question_id, user_object=user_object, reask=False)
             else:
@@ -92,7 +92,9 @@ class FormFillingDialogManager(CascadableDialogManager):
             form = user_object['forms'][self.config.form_name]
             if self.config.start_message is not None:
                 form['next_question'] = -1
-                return user_object, self.config.start_message, self.config.start_suggests, []
+                return Response(
+                    text=self.config.start_message, suggests=self.config.start_suggests, user_object=user_object
+                )
             else:
                 form['next_question'] = 0
                 return self.ask_question(0, user_object, reask=False)
@@ -114,7 +116,7 @@ class FormFillingDialogManager(CascadableDialogManager):
             suggests = []
         if self.config.exit_suggest is not None:
             suggests.append(self.config.exit_suggest)
-        return user_object, response, suggests, []
+        return Response(user_object=user_object, text=response, suggests=suggests)
 
     def validate_answer(self, form, message_text):
         question_id = form.get('next_question', -1)
@@ -132,6 +134,6 @@ class FormFillingDialogManager(CascadableDialogManager):
                 return None
         return message_text
 
-    def handle_completed_form(self, form, context):
+    def handle_completed_form(self, form, ctx):
         """ This method can be overwritten to do something useful """
         return None

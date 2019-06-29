@@ -2,6 +2,7 @@ import copy
 import telebot
 
 from .session_storage import BaseStorage
+from .dialog_manager.base import Response, Context
 
 
 class SOURCES:
@@ -26,14 +27,11 @@ class DialogConnector:
             source = self.default_source
         user_id, message_text, metadata = self.standardize_input(source, message)
         user_object = self.get_user_object(user_id)
-        old_user_object = copy.deepcopy(user_object)
-        updated_user_object, response_text, suggests, response_commands = self.dialog_manager.respond(
-            user_object, message_text, metadata
-        )
-        # todo: execute response_commands
-        if updated_user_object != old_user_object:
-            self.set_user_object(user_id, updated_user_object)
-        response = self.standardize_output(source, message, response_text, response_commands, suggests)
+        context = Context(user_object=user_object, message_text=message_text, metadata=metadata)
+        response = self.dialog_manager.respond(context)
+        if response.updated_user_object is not None and response.updated_user_object != user_object:
+            self.set_user_object(user_id, response.updated_user_object)
+        response = self.standardize_output(source, message, response)
         return response
 
     def get_user_object(self, user_id):
@@ -62,46 +60,44 @@ class DialogConnector:
             raise ValueError(SOURCES.unknown_source_error_message)
         return user_id, message_text, metadata
 
-    def standardize_output(self, source, original_message, response_text, response_commands=None, suggests=None):
+    def standardize_output(self, source, original_message, response: Response):
         has_exit_command = False
-        if response_commands:
-            for command in response_commands:
+        if response.commands:
+            for command in response.commands:
                 if command == self.COMMAND_EXIT:
                     has_exit_command = True
                 else:
                     raise NotImplementedError('Command "{}" is not implemented'.format(command))
-        else:
-            response_commands = []
         if source == SOURCES.TELEGRAM:
-            response = {
-                'text': response_text
+            result = {
+                'text': response.text
             }
-            if suggests:
+            if response.suggests:
                 # todo: do smarter row width calculation
-                row_width = min(self.tg_suggests_cols, len(suggests))
-                response['reply_markup'] = telebot.types.ReplyKeyboardMarkup(row_width=row_width)
-                response['reply_markup'].add(*[telebot.types.KeyboardButton(t) for t in suggests])
+                row_width = min(self.tg_suggests_cols, len(response.suggests))
+                result['reply_markup'] = telebot.types.ReplyKeyboardMarkup(row_width=row_width)
+                result['reply_markup'].add(*[telebot.types.KeyboardButton(t) for t in response.suggests])
             else:
-                response['reply_markup'] = telebot.types.ReplyKeyboardRemove(selective=False)
-            return response
+                result['reply_markup'] = telebot.types.ReplyKeyboardRemove(selective=False)
+            return result
         elif source == SOURCES.ALICE:
-            response = {
+            result = {
                 "version": original_message['version'],
                 "session": original_message['session'],
                 "response": {
                     "end_session": has_exit_command,
-                    "text": response_text
+                    "text": response.text
                 }
             }
-            if suggests:
-                response['response']['buttons'] = [{'title': suggest, 'hide': True} for suggest in suggests]
-            return response
+            if response.suggests:
+                result['response']['buttons'] = [{'title': suggest, 'hide': True} for suggest in response.suggests]
+            return result
         elif source == SOURCES.TEXT:
-            response = response_text
-            if suggests is not None and len(suggests) > 0:
-                response = response + '\n' + ', '.join(['[{}]'.format(s) for s in suggests])
-            if response_commands is not None and len(response_commands) > 0:
-                response = response + '\n' + ', '.join(['{{{}}}'.format(c) for c in response_commands])
-            return response, has_exit_command
+            result = response.text
+            if len(response.suggests) > 0:
+                result = result + '\n' + ', '.join(['[{}]'.format(s) for s in response.suggests])
+            if len(response.commands) > 0:
+                result = result + '\n' + ', '.join(['{{{}}}'.format(c) for c in response.commands])
+            return result, has_exit_command
         else:
             raise ValueError(SOURCES.unknown_source_error_message)

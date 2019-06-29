@@ -10,22 +10,25 @@ TEXT_FAREWELL = 'Всего доброго! Если захотите повто
 
 
 class ExampleDialogManager(tgalice.dialog_manager.BaseDialogManager):
-    def respond(self, user_object, message_text, metadata):
+    def respond(self, ctx):
         suggests = ['довольно']
+        user_object = ctx.user_object
         count = user_object.get('count', -1) + 1
         commands = []
-        text = tgalice.nlu.basic_nlu.fast_normalize(message_text)
+        text = tgalice.nlu.basic_nlu.fast_normalize(ctx.message_text)
 
-        if not text or tgalice.nlu.basic_nlu.like_help(text) or not user_object or text == '/start':
+        if not text or tgalice.nlu.basic_nlu.like_help(text) or not ctx.user_object or text == '/start':
             response = TEXT_HELP
         elif text == 'довольно' or tgalice.nlu.basic_nlu.like_exit(text):
             response = TEXT_FAREWELL
             commands.append(tgalice.dialog_manager.COMMANDS.EXIT)
         else:
-            response = 'Вы только что сказали "{}". Всего вы сказали {}.'.format(message_text, self._count(count))
+            response = 'Вы только что сказали "{}". Всего вы сказали {}.'.format(ctx.message_text, self._count(count))
 
         user_object['count'] = count
-        return user_object, response, suggests, commands
+        return tgalice.dialog_manager.Response(
+            user_object=user_object, text=response, suggests=suggests, commands=commands
+        )
 
     @staticmethod
     def _count(count):
