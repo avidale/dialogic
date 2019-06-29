@@ -4,7 +4,7 @@ import yaml
 from collections import Mapping
 
 from .base import CascadableDialogManager, Context
-from ..nlu import basic_nlu
+from ..nlu import basic_nlu, matchers
 
 
 class FieldConfig:
@@ -16,6 +16,12 @@ class FieldConfig:
         self.validate_message = obj.get('validate_message')
         self.options = obj.get('options')
         self.suggests = obj.get('suggests')
+
+        if self.options is not None:
+            self.matcher = matchers.make_matcher(**obj.get('matching', {'key': 'levenshtein', 'threshold': 0.8}))
+            self.matcher.fit(self.options, self.options)
+        else:
+            self.matcher = None
 
 
 class FormConfig:
@@ -60,8 +66,9 @@ class FormFillingDialogManager(CascadableDialogManager):
                 form['is_active'] = False
                 return user_object, self.config.exit_message, [], []
             question_id = form['next_question']
-            if self.answer_is_valid(form, message_text):
-                form['fields'][self.config.fields[question_id].name] = message_text
+            validated_answer = self.validate_answer(form, message_text)
+            if validated_answer is not None:
+                form['fields'][self.config.fields[question_id].name] = validated_answer
                 next_question_id = question_id + 1
                 if next_question_id >= self.config.num_fields:
                     form['is_active'] = False
@@ -109,16 +116,22 @@ class FormFillingDialogManager(CascadableDialogManager):
             suggests.append(self.config.exit_suggest)
         return user_object, response, suggests, []
 
-    def answer_is_valid(self, form, message_text):
+    def validate_answer(self, form, message_text):
         question_id = form.get('next_question', -1)
         if question_id == -1:
-            return True
+            return message_text
         the_question = self.config.fields[question_id]
+        normalized_text = basic_nlu.fast_normalize(message_text)
         if the_question.options is not None:
-            return message_text in the_question.options
+            winner_label, best_score = the_question.matcher.match(message_text)
+            return winner_label
         if the_question.validate_regexp is not None:
-            return re.match(the_question.validate_regexp, basic_nlu.fast_normalize(message_text))
-        return True
+            if re.match(the_question.validate_regexp, normalized_text):
+                return message_text
+            else:
+                return None
+        return message_text
 
     def handle_completed_form(self, form, context):
-        pass
+        """ This method can be overwritten to do something useful """
+        return None
