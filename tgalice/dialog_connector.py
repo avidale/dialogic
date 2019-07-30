@@ -1,4 +1,3 @@
-import copy
 import telebot
 
 from .session_storage import BaseStorage
