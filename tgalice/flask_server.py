@@ -50,9 +50,9 @@ class FlaskServer:
     def log_message(self, data, source):
         if self.collection_for_logs is None:
             return
-        if source == 'alice':
+        if source == SOURCES.ALICE:
             msg = LoggedMessage.from_alice(data)
-        elif source == 'telegram':
+        elif source == SOURCES.TELEGRAM:
             msg = LoggedMessage.from_telegram(data)
         else:
             return
@@ -62,9 +62,9 @@ class FlaskServer:
         msg.save_to_mongo(self.collection_for_logs)
 
     def alice_response(self):
-        self.log_message(request.json, 'alice')
+        self.log_message(request.json, SOURCES.ALICE)
         response = self.connector.respond(request.json, source=SOURCES.ALICE)
-        self.log_message(response, 'alice')
+        self.log_message(response, SOURCES.ALICE)
         return json.dumps(response, ensure_ascii=False, indent=2)
 
     def tg_response(self, message):
@@ -73,10 +73,10 @@ class FlaskServer:
             # todo: log this event
             return
         self._processed_telegram_ids.add(message.message_id)
-        self.log_message(message, 'telegram')
+        self.log_message(message, SOURCES.TELEGRAM)
         response = self.connector.respond(message, source=SOURCES.TELEGRAM)
         telegram_response = self.bot.reply_to(message, **response)
-        self.log_message(telegram_response, 'telegram')
+        self.log_message(telegram_response, SOURCES.TELEGRAM)
 
     def get_tg_message(self):
         self.bot.process_new_updates([telebot.types.Update.de_json(request.stream.read().decode("utf-8"))])
