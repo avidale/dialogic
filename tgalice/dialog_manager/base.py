@@ -33,7 +33,10 @@ class Response:
 
     def set_text(self, text_and_voice):
         parser = reply_markup.TTSParser()
-        parser.feed(text_and_voice)
+        try:
+            parser.feed(text_and_voice)
+        except ValueError as e:
+            raise ValueError('Got error "{}" while parsing text "{}"'.format(e, text_and_voice))
         parser.close()
         self.text = parser.get_text()
         self.voice = parser.get_voice()
