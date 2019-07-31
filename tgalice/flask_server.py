@@ -18,7 +18,7 @@ class FlaskServer:
             connector: DialogConnector,
             telegram_token=None, base_url=None,
             alice_url='alice/', telegram_url='tg/', restart_webhook_url='restart_webhook',
-            collection_for_logs=None
+            collection_for_logs=None, not_log_id=None
     ):
         if telegram_token is None:
             telegram_token = os.environ.get('TOKEN')
@@ -32,6 +32,7 @@ class FlaskServer:
 
         self.connector = connector
         self.collection_for_logs = collection_for_logs
+        self.not_log_id = not_log_id or set()
 
         self.app = Flask(__name__)
 
@@ -46,12 +47,24 @@ class FlaskServer:
 
         self._processed_telegram_ids = set()
 
+    def log_message(self, data, source):
+        if self.collection_for_logs is None:
+            return
+        if source == 'alice':
+            msg = LoggedMessage.from_alice(data)
+        elif source == 'telegram':
+            msg = LoggedMessage.from_telegram(data)
+        else:
+            return
+        if self.not_log_id is not None and msg.user_id in self.not_log_id:
+            # main reason: don't log pings from Yandex
+            return
+        msg.save_to_mongo(self.collection_for_logs)
+
     def alice_response(self):
-        if self.collection_for_logs is not None:
-            LoggedMessage.from_alice(request.json).save_to_mongo(self.collection_for_logs)
+        self.log_message(request.json, 'alice')
         response = self.connector.respond(request.json, source=SOURCES.ALICE)
-        if self.collection_for_logs is not None:
-            LoggedMessage.from_alice(response).save_to_mongo(self.collection_for_logs)
+        self.log_message(response, 'alice')
         return json.dumps(response, ensure_ascii=False, indent=2)
 
     def tg_response(self, message):
@@ -60,12 +73,10 @@ class FlaskServer:
             # todo: log this event
             return
         self._processed_telegram_ids.add(message.message_id)
-        if self.collection_for_logs is not None:
-            LoggedMessage.from_telegram(message).save_to_mongo(self.collection_for_logs)
+        self.log_message(message, 'telegram')
         response = self.connector.respond(message, source=SOURCES.TELEGRAM)
         telegram_response = self.bot.reply_to(message, **response)
-        if self.collection_for_logs is not None:
-            LoggedMessage.from_telegram(telegram_response).save_to_mongo(self.collection_for_logs)
+        self.log_message(telegram_response, 'telegram')
 
     def get_tg_message(self):
         self.bot.process_new_updates([telebot.types.Update.de_json(request.stream.read().decode("utf-8"))])
