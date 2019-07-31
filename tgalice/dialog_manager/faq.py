@@ -46,7 +46,7 @@ class FAQDialogManager(CascadableDialogManager):
             return None
         response = random.choice(self._i2a[index])
         suggests = self._i2s.get(index, [])
-        return Response(text=response, suggests=suggests)
+        return Response(text=response, suggests=suggests).set_text(response)
 
     @staticmethod
     def _extract_string_or_strings(data, key, allow_empty=False):

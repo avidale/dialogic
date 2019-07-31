@@ -71,6 +71,9 @@ class DialogConnector:
             result = {
                 'text': response.text
             }
+            if response.links is not None:
+                for l in response.links:
+                    result['text'] += '\n{}:{}'.format(l['title'], l['text'])
             if response.suggests:
                 # todo: do smarter row width calculation
                 row_width = min(self.tg_suggests_cols, len(response.suggests))
@@ -88,11 +91,15 @@ class DialogConnector:
                     "text": response.text
                 }
             }
+            buttons = response.links or []
             if response.suggests:
-                result['response']['buttons'] = [{'title': suggest, 'hide': True} for suggest in response.suggests]
+                buttons = buttons + [{'title': suggest, 'hide': True} for suggest in response.suggests]
+            result['response']['buttons'] = buttons
             return result
         elif source == SOURCES.TEXT:
             result = response.text
+            if len(response.links) > 0:
+                result = result + '\n' + ', '.join(['[{}: {}]'.format(l['title'], l['url']) for l in response.links])
             if len(response.suggests) > 0:
                 result = result + '\n' + ', '.join(['[{}]'.format(s) for s in response.suggests])
             if len(response.commands) > 0:

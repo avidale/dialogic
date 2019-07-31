@@ -3,6 +3,7 @@ import copy
 import typing
 
 from ..nlu import basic_nlu
+from ..nlg import reply_markup
 
 
 class COMMANDS:
@@ -21,13 +22,23 @@ class Context:
 
 
 class Response:
-    def __init__(self, text, suggests=None, commands=None, voice=None, user_object=None, confidence=0.5):
+    def __init__(self, text, suggests=None, commands=None, voice=None, links=None, user_object=None, confidence=0.5):
         self.text = text
         self.suggests = suggests or []
         self.commands = commands or []
         self.voice = voice if voice is not None else text
+        self.links = links or []
         self.updated_user_object = user_object
         self.confidence = confidence
+
+    def set_text(self, text_and_voice):
+        parser = reply_markup.TTSParser()
+        parser.feed(text_and_voice)
+        parser.close()
+        self.text = parser.get_text()
+        self.voice = parser.get_voice()
+        self.links.extend(parser.get_links())
+        return self
 
 
 class BaseDialogManager:
