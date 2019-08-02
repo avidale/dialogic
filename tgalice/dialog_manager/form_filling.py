@@ -71,8 +71,9 @@ class FormFillingDialogManager(CascadableDialogManager):
                 form['fields'][self.config.fields[question_id].name] = validated_answer
                 next_question_id = question_id + 1
                 if next_question_id >= self.config.num_fields:
+                    form.pop('next_question')
                     form['is_active'] = False
-                    result = self.handle_completed_form(form, ctx)
+                    result = self.handle_completed_form(form, user_object, ctx)
                     if result is not None:
                         return result
                     return Response(text=self.config.finish_message, user_object=user_object)
@@ -134,6 +135,6 @@ class FormFillingDialogManager(CascadableDialogManager):
                 return None
         return message_text
 
-    def handle_completed_form(self, form, ctx):
+    def handle_completed_form(self, form, user_object, ctx):
         """ This method can be overwritten to do something useful """
         return None
