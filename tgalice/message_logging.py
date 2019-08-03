@@ -51,3 +51,15 @@ class LoggedMessage:
             source='alice',
             **kwargs
         )
+
+    @classmethod
+    def from_facebook(cls, message, **kwargs):
+        # todo: remove somehow duplication with standardize_input
+        return cls(
+            text=message['response']['text'] if 'response' in message else message['request']['original_utterance'],
+            user_id=message['session']['user_id'],
+            from_user='response' not in message,
+            data=message,
+            source='facebook',
+            **kwargs
+        )

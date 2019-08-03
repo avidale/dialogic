@@ -8,7 +8,8 @@ class SOURCES:
     TELEGRAM = 'telegram'
     ALICE = 'alice'
     TEXT = 'text'
-    unknown_source_error_message = 'Source must be on of {"telegram", "alice", "text"}'
+    FACEBOOK = 'facebook'
+    unknown_source_error_message = 'Source must be on of {"telegram", "alice", "text", "facebook"}'
 
 
 class DialogConnector:
@@ -52,8 +53,11 @@ class DialogConnector:
             user_id = source + '__' + message['session']['user_id']
             message_text = message['request']['original_utterance']
             metadata['new_session'] = message.get('session', {}).get('new', False)
+        elif source == SOURCES.FACEBOOK:
+            user_id = source + '__' + message['sender']['id']
+            message_text = message.get('message', {}).get('text') or message.get('postback', {}).get('payload')
         elif source == SOURCES.TEXT:
-            user_id = '0'
+            user_id = 'the_text_user'
             message_text = message
         else:
             raise ValueError(SOURCES.unknown_source_error_message)
@@ -101,6 +105,22 @@ class DialogConnector:
                     button['hide'] = True
             result['response']['buttons'] = buttons
             return result
+        elif source == SOURCES.FACEBOOK:
+            result = {'text': response.text}
+            if response.suggests or response.links:
+                links = [{'type': 'web_url', 'title': l['title'], 'url': l['url']} for l in response.links]
+                suggests = [{'type': 'postback', 'title': s, 'payload': s} for s in response.suggests]
+                result = {
+                    "attachment": {
+                        "type": "template",
+                        "payload": {
+                            "template_type": "button",
+                            "text": response.text,
+                            "buttons": links + suggests
+                        }
+                    }
+                }
+            return result  # for bot.send_message(recipient_id, result)
         elif source == SOURCES.TEXT:
             result = response.text
             if len(response.links) > 0:
