@@ -1,10 +1,13 @@
 # tgalice
-This is yet another common Python wrapper for Telegram bots<sup>[*](#footnote1)</sup> and Alice skills.
+This is yet another common Python wrapper for Telegram bots<sup>[*](#footnote1)</sup>, Alice skills, 
+and Facebook Messenger bots.
 
 Currently, it provides:
 - An (almost) unified interface between your bot and Telegram or Alice: `DialogConnector`
-- A number of simple dialogue constructors: `BaseDialogManager` and its flavors
-- A wrapper for storing dialogue state: `BaseStorage` and its flavors
+- A number of simple dialogue constructors: `BaseDialogManager` and its flavors, including:
+    - a simple FAQ dialog manager
+    - a simple form-filling dialog manager
+- A wrapper for storing dialogue state: `BaseStorage` and its flavors (specifially, `MongoBasedStorage`)
 
 This [package](https://pypi.org/project/tgalice/) may be installed with 
 ```
@@ -40,6 +43,8 @@ which configures both Alice and Telegram for you, and can also run in pure comma
 server = tgalice.flask_server.FlaskServer(connector=connector)
 server.parse_args_and_run()
 ```
+Now, if your app is hosted on address `{BASE_URL}`, then webhooks for Alice and Facebook will be available, 
+respectively, at `{BASE_URL}/alice/` and `{BASE_URL}/fb/` (and you can reconfigure it, if you want).
 
 The [examples](https://github.com/avidale/tgalice/tree/master/example) directory contains more detailed examples 
 of how to create dialogs and serve the bot. 
