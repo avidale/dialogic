@@ -20,5 +20,12 @@ setuptools.setup(
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],
-    install_requires=['pyTelegramBotAPI', 'textdistance', 'pyyaml', 'flask', 'pymessenger']
+    install_requires=[
+        'pyTelegramBotAPI',
+        'textdistance',
+        'pyyaml',
+        'flask',
+        'pymessenger',
+        'pymorphy2'
+    ]
 )

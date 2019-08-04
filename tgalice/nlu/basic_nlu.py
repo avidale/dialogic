@@ -1,9 +1,26 @@
+import pymorphy2
 import re
 
+from functools import lru_cache
 
-def fast_normalize(text):
-    text = re.sub('[^a-zа-яё0-9\-]+', ' ', text.lower())
+PYMORPHY = pymorphy2.MorphAnalyzer()
+
+
+@lru_cache(maxsize=16384)
+def word2lemma(word):
+    hypotheses = PYMORPHY.parse(word)
+    if len(hypotheses) == 0:
+        return word
+    return hypotheses[0].normal_form
+
+
+def fast_normalize(text, lemmatize=False):
+    text = re.sub('[^a-zа-яё0-9]+', ' ', text.lower())
+    # we consider '-' as a delimiter, because it is often missing in results of ASR
     text = re.sub('\s+', ' ', text).strip()
+    if lemmatize:
+        text = ' '.join([word2lemma(w) for w in text.split()])
+    text = re.sub('ё', 'е', text)
     return text
 
 

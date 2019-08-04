@@ -1,2 +1,1 @@
-tgalice==0.0.2
-flask>=1.0.2
+tgalice

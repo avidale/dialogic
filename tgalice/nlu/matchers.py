@@ -1,7 +1,7 @@
 import math
 import textdistance
 
-from collections import Counter
+from collections import Counter, Callable
 
 from ..nlu import basic_nlu
 
@@ -36,7 +36,11 @@ class PairwiseMatcher(BaseMatcher):
 
     def preprocess(self, text):
         if self.text_normalization == 'fast':
-            text = basic_nlu.fast_normalize(text)
+            text = basic_nlu.fast_normalize(text, lemmatize=True)
+        if self.text_normalization == 'fast_lemmatize':
+            text = basic_nlu.fast_normalize(text, lemmatize=True)
+        elif isinstance(self.text_normalization, Callable):
+            text = self.text_normalization(text)
         return text
 
     def compare(self, one, another):
