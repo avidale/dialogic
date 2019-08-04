@@ -66,10 +66,11 @@ class LoggedMessage:
     @classmethod
     def from_facebook(cls, message, **kwargs):
         # todo: remove somehow duplication with standardize_input
+        kwargs_user_id = kwargs.pop('user_id')
         return cls(
             text=message.get('message', {}).get('text') or message.get('postback', {}).get('payload')
                 or message.get('text') or message.get('attachment', {}).get('payload', {}).get('text'),
-            user_id=message.get('sender', {}).get('id') or kwargs.get('user_id'),
+            user_id=message.get('sender', {}).get('id') or kwargs_user_id,
             from_user='sender' in message,
             data=message,
             source='facebook',

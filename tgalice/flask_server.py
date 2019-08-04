@@ -45,7 +45,7 @@ class FlaskServer:
         self.app.route("/" + self.alice_url, methods=['POST'])(self.alice_response)
 
         if self.telegram_token is not None:
-            self.bot = telebot.TeleBot(telegram_token)
+            self.bot = telebot.TeleBot(self.telegram_token)
             self.bot.message_handler(func=lambda message: True)(self.tg_response)
             self.app.route('/' + self.telegram_url + self.telegram_token, methods=['POST'])(self.get_tg_message)
             self.app.route("/" + self.restart_webhook_url)(self.telegram_web_hook)
@@ -106,6 +106,7 @@ class FlaskServer:
 
     def run_local_telegram(self):
         if self.bot is not None:
+            self.bot.remove_webhook()
             self.bot.polling()
         else:
             raise ValueError('Cannot run Telegram bot, because Telegram token was not found.')
