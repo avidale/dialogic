@@ -49,6 +49,7 @@ class PairwiseMatcher(BaseMatcher):
     def fit(self, texts, labels):
         self._texts = [self.preprocess(text) for text in texts]
         self._labels = labels
+        return self
 
     def get_scores(self, text):
         processed = self.preprocess(text)
@@ -99,8 +100,7 @@ class TFIDFMatcher(PairwiseMatcher):
 
     def fit(self, texts, labels):
         self.vocab = Counter(w for t in texts for w in self._tokenize(t))
-        self._texts = [self.preprocess(text) for text in texts]
-        self._labels = labels
+        return super(TFIDFMatcher, self).fit(texts, labels)
 
     def preprocess(self, text):
         text = super(TFIDFMatcher, self).preprocess(text)

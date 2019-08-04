@@ -2,15 +2,20 @@ from __future__ import print_function
 
 import argparse
 import json
+import logging
 import os
-from pymessenger.bot import Bot as FacebookBot
 import telebot
 import warnings
 
 from flask import Flask, request
+from pymessenger.bot import Bot as FacebookBot
 
 from .dialog_connector import DialogConnector, SOURCES
 from .message_logging import LoggedMessage
+
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 
 class FlaskServer:
@@ -42,24 +47,45 @@ class FlaskServer:
 
         self.app = Flask(__name__)
 
-        self.app.route("/" + self.alice_url, methods=['POST'])(self.alice_response)
+        logger.info('The Alice webhook is available on "{}"'.format(self.alice_webhook_url))
+        self.app.route(self.alice_webhook_url, methods=['POST'])(self.alice_response)
 
-        if self.telegram_token is not None:
+        if self.telegram_token is not None and base_url is not None:
+            logger.info('Running Telegram bot with token "{}" on "{}"'.format(
+                self.telegram_token, self.telegram_webhook_url)
+            )
             self.bot = telebot.TeleBot(self.telegram_token)
             self.bot.message_handler(func=lambda message: True)(self.tg_response)
-            self.app.route('/' + self.telegram_url + self.telegram_token, methods=['POST'])(self.get_tg_message)
+            self.app.route(self.telegram_webhook_url, methods=['POST'])(self.get_tg_message)
             self.app.route("/" + self.restart_webhook_url)(self.telegram_web_hook)
         else:
+            logger.info('Running no Telegram bot because TOKEN or BASE_URL was not provided')
             self.bot = None
 
         if self.facebook_verify_token and self.facebook_access_token:
-            self.app.route('/' + self.facebook_url, methods=['GET'])(self.receive_fb_verification_request)
-            self.app.route('/' + self.facebook_url, methods=['POST'])(self.facebook_response)
+            logger.info('Running Facebook bot on "{}"'.format(self.facebook_webhook_url))
+            self.app.route(self.facebook_webhook_url, methods=['GET'])(self.receive_fb_verification_request)
+            self.app.route(self.facebook_webhook_url, methods=['POST'])(self.facebook_response)
             self.facebook_bot = FacebookBot(self.facebook_access_token)
         else:
+            logger.info(
+                'Running no Facebook bot because FACEBOOK_ACCESS_TOKEN or FACEBOOK_VERIFY_TOKEN was not provided'
+            )
             self.facebook_bot = None
 
         self._processed_telegram_ids = set()
+
+    @property
+    def alice_webhook_url(self):
+        return "/" + self.alice_url
+
+    @property
+    def facebook_webhook_url(self):
+        return '/' + self.facebook_url
+
+    @property
+    def telegram_webhook_url(self):
+        return '/' + self.telegram_url + self.telegram_token
 
     def log_message(self, data, source, **kwargs):
         # todo: maybe make the logic a part of connector instead of flask server
