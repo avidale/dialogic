@@ -61,15 +61,17 @@ class FlaskServer:
 
         self._processed_telegram_ids = set()
 
-    def log_message(self, data, source):
+    def log_message(self, data, source, **kwargs):
         # todo: maybe make the logic a part of connector instead of flask server
         if self.collection_for_logs is None:
             return
         if source == SOURCES.ALICE:
-            msg = LoggedMessage.from_alice(data)
+            msg = LoggedMessage.from_alice(data, **kwargs)
         elif source == SOURCES.TELEGRAM:
-            msg = LoggedMessage.from_telegram(data)
-        else:  # todo: facebook
+            msg = LoggedMessage.from_telegram(data, **kwargs)
+        elif source == SOURCES.FACEBOOK:
+            msg = LoggedMessage.from_facebook(data, **kwargs)
+        else:
             return
         if self.not_log_id is not None and msg.user_id in self.not_log_id:
             # main reason: don't log pings from Yandex
@@ -122,12 +124,12 @@ class FlaskServer:
             messaging = event['messaging']
             for message in messaging:
                 if message.get('message') or message.get('postback'):
-                    # todo: self.log_message(message, SOURCES.FACEBOOK)
                     recipient_id = message['sender']['id']
+                    self.log_message(message, SOURCES.FACEBOOK, user_id=recipient_id)
                     if message.get('message', {}).get('text') or message.get('postback'):
                         response = self.connector.respond(message, source=SOURCES.FACEBOOK)
                         self.facebook_bot.send_message(recipient_id, response)
-                        # todo: self.log_message(response, SOURCES.FACEBOOK)
+                        self.log_message(response, SOURCES.FACEBOOK, user_id=recipient_id)
                     # if user sends us a GIF, photo,video, or any other non-text item
                     elif message['message'].get('attachments'):
                         pass
