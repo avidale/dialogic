@@ -50,14 +50,21 @@ class FlaskServer:
         logger.info('The Alice webhook is available on "{}"'.format(self.alice_webhook_url))
         self.app.route(self.alice_webhook_url, methods=['POST'])(self.alice_response)
 
-        if self.telegram_token is not None and base_url is not None:
-            logger.info('Running Telegram bot with token "{}" on "{}"'.format(
-                self.telegram_token, self.telegram_webhook_url)
-            )
+        if self.telegram_token is not None:
             self.bot = telebot.TeleBot(self.telegram_token)
             self.bot.message_handler(func=lambda message: True)(self.tg_response)
-            self.app.route(self.telegram_webhook_url, methods=['POST'])(self.get_tg_message)
-            self.app.route("/" + self.restart_webhook_url)(self.telegram_web_hook)
+            if base_url is not None:
+                logger.info('Running Telegram bot with token "{}" on "{}"'.format(
+                    self.telegram_token, self.telegram_webhook_url)
+                )
+                self.app.route(self.telegram_webhook_url, methods=['POST'])(self.get_tg_message)
+                self.app.route("/" + self.restart_webhook_url)(self.telegram_web_hook)
+            else:
+                logger.info(
+                    'Running Telegram bot with token "{}", but without BASE_URL it can work only locally'.format(
+                        self.telegram_token
+                    )
+                )
         else:
             logger.info('Running no Telegram bot because TOKEN or BASE_URL was not provided')
             self.bot = None
@@ -118,7 +125,22 @@ class FlaskServer:
         self._processed_telegram_ids.add(message.message_id)
         self.log_message(message, SOURCES.TELEGRAM)
         response = self.connector.respond(message, source=SOURCES.TELEGRAM)
+        multimedia = response.pop('multimedia', [])
         telegram_response = self.bot.reply_to(message, **response)
+        response_text = response.pop('text', None)
+        for item in multimedia:
+            if item['type'] == 'photo':
+                self.bot.send_photo(
+                    message.chat.id, photo=item['content'], reply_to_message_id=message.message_id, **response
+                )
+            if item['type'] == 'document':
+                self.bot.send_document(
+                    message.chat.id, data=item['content'], reply_to_message_id=message.message_id, **response
+                )
+            elif item['type'] == 'audio':
+                self.bot.send_audio(
+                    message.chat.id, audio=item['content'], reply_to_message_id=message.message_id, **response
+                )
         self.log_message(telegram_response, SOURCES.TELEGRAM)
 
     def get_tg_message(self):

@@ -11,7 +11,8 @@ class TTSParser(HTMLParser):
     TAG_TEXT = 'text'
     TAG_VOICE = 'voice'
     TAG_LINK = 'a'
-    SUPPORTED_TAGS = {TAG_TEXT, TAG_VOICE, TAG_LINK}
+    TAG_SPEAKER = 'speaker'  # it has no close tag
+    SUPPORTED_TAGS = {TAG_TEXT, TAG_VOICE, TAG_LINK, TAG_SPEAKER}
 
     def __init__(self):
         super(TTSParser, self).__init__()
@@ -25,6 +26,9 @@ class TTSParser(HTMLParser):
             raise ValueError('Open tag "{}" encountered, but tag "{}" is not closed'.format(self._current_tag, tag))
         if tag not in self.SUPPORTED_TAGS:
             warnings.warn('Encountered an unknown tag "{}", will ignore it'.format(tag))
+        if tag == self.TAG_SPEAKER:
+            self._voice += self.get_starttag_text()
+            return  # speaker tag cannot be current
         self._current_tag = tag
         if tag == self.TAG_LINK:
             attrs_dict = dict(attrs)

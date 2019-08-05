@@ -23,7 +23,11 @@ class Context:
 
 
 class Response:
-    def __init__(self, text, suggests=None, commands=None, voice=None, links=None, user_object=None, confidence=0.5):
+    def __init__(self, text,
+                 suggests=None, commands=None, voice=None, links=None,
+                 image_id=None, image_url=None, sound_url=None,
+                 user_object=None, confidence=0.5
+                 ):
         self.text = text
         self.suggests = suggests or []
         self.commands = commands or []
@@ -31,6 +35,9 @@ class Response:
         self.links = links or []
         self.updated_user_object = user_object
         self.confidence = confidence
+        self.image_id = image_id
+        self.image_url = image_url  # todo: support them in Facebook as well
+        self.sound_url = sound_url
 
     def set_text(self, text_and_voice):
         parser = reply_markup.TTSParser()

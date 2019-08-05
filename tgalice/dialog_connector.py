@@ -85,6 +85,15 @@ class DialogConnector:
                 result['reply_markup'].add(*[telebot.types.KeyboardButton(t) for t in response.suggests])
             else:
                 result['reply_markup'] = telebot.types.ReplyKeyboardRemove(selective=False)
+            if response.image_url:
+                if 'multimedia' not in result:
+                    result['multimedia'] = []
+                media_type = 'document' if response.image_url.endswith('.gif') else 'photo'
+                result['multimedia'].append({'type': media_type, 'content': response.image_url})
+            if response.sound_url:
+                if 'multimedia' not in result:
+                    result['multimedia'] = []
+                result['multimedia'].append({'type': 'audio', 'content': response.sound_url})
             return result
         elif source == SOURCES.ALICE:
             result = {
@@ -104,6 +113,13 @@ class DialogConnector:
                 if not isinstance(button.get('hide'), bool):
                     button['hide'] = True
             result['response']['buttons'] = buttons
+            if response.image_id:
+                result['response']['card'] = {
+                    'type': 'BigImage',
+                    'image_id': response.image_id,
+                    'description': response.text
+                    # todo: enable 'title' and 'button' properties as well
+                }
             return result
         elif source == SOURCES.FACEBOOK:
             result = {'text': response.text}
@@ -123,6 +139,14 @@ class DialogConnector:
             return result  # for bot.send_message(recipient_id, result)
         elif source == SOURCES.TEXT:
             result = response.text
+            if response.voice is not None and response.voice != response.text:
+                result = result + '\n[voice: {}]'.format(response.voice)
+            if response.image_id:
+                result = result + '\n[image: {}]'.format(response.image_id)
+            if response.image_url:
+                result = result + '\n[image: {}]'.format(response.image_url)
+            if response.sound_url:
+                result = result + '\n[sound: {}]'.format(response.sound_url)
             if len(response.links) > 0:
                 result = result + '\n' + ', '.join(['[{}: {}]'.format(l['title'], l['url']) for l in response.links])
             if len(response.suggests) > 0:
