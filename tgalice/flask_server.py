@@ -128,19 +128,14 @@ class FlaskServer:
         multimedia = response.pop('multimedia', [])
         telegram_response = self.bot.reply_to(message, **response)
         response_text = response.pop('text', None)
+        # todo: maybe set response['reply_to_message_id'] = message.message_id
         for item in multimedia:
             if item['type'] == 'photo':
-                self.bot.send_photo(
-                    message.chat.id, photo=item['content'], reply_to_message_id=message.message_id, **response
-                )
+                self.bot.send_photo(message.chat.id, photo=item['content'], **response)
             if item['type'] == 'document':
-                self.bot.send_document(
-                    message.chat.id, data=item['content'], reply_to_message_id=message.message_id, **response
-                )
+                self.bot.send_document(message.chat.id, data=item['content'], **response)
             elif item['type'] == 'audio':
-                self.bot.send_audio(
-                    message.chat.id, audio=item['content'], reply_to_message_id=message.message_id, **response
-                )
+                self.bot.send_audio(message.chat.id, audio=item['content'], **response)
         self.log_message(telegram_response, SOURCES.TELEGRAM)
 
     def get_tg_message(self):

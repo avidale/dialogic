@@ -76,8 +76,9 @@ class DialogConnector:
                 'text': response.text
             }
             if response.links is not None:
+                result['parse_mode'] = 'html'
                 for l in response.links:
-                    result['text'] += '\n{}: {}'.format(l['title'], l['url'])
+                    result['text'] += '\n<a href="{}">{}</a>'.format(l['url'], l['title'])
             if response.suggests:
                 # todo: do smarter row width calculation
                 row_width = min(self.tg_suggests_cols, len(response.suggests))
