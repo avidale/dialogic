@@ -51,7 +51,7 @@ class DialogConnector:
             message_text = message.text
         elif source == SOURCES.ALICE:
             user_id = source + '__' + message['session']['user_id']
-            message_text = message['request']['original_utterance']
+            message_text = message['request']['command']
             metadata['new_session'] = message.get('session', {}).get('new', False)
         elif source == SOURCES.FACEBOOK:
             user_id = source + '__' + message['sender']['id']

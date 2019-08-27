@@ -21,6 +21,7 @@ setuptools.setup(
         "Operating System :: OS Independent",
     ],
     install_requires=[
+        'requests',  # it is needed by other packages, and somehow it is installed wrongly
         'pyTelegramBotAPI',
         'textdistance',
         'pyyaml',

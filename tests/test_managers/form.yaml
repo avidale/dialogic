@@ -1,0 +1,44 @@
+form_name: 'math_test_form'
+
+start:
+  regexp: 'start (the )?test'
+  # message: Okay, let's start the test! I will ask 3 difficult math questions. Say anything to start.
+  suggests:
+    - Start!
+    - Exit the test
+
+finish:
+  message: Okay, thank you for filling the form. We'll tell you the results later.
+
+fields:
+  - name: 'name'
+    question: Please tell me your name
+  - name: 'year'
+    question: Now tell me the year of your birth. Four digits, nothing more.
+    validate_regexp: '^[0-9]{4}$'
+    validate_message: Please try again. Your answer should be 4 digits.
+  - name: 'month'
+    question: Wonderful! Now choose the month of your birth (the first 3 letters).
+    options:
+      - jan
+      - feb
+      - mar
+      - apr
+      - may
+      - jun
+      - jul
+      - aug
+      - sep
+      - oct
+      - nov
+      - dec
+    validate_message: The answer should be one of the suggested options - the first 3 letters of a month.
+  - name: 'day'
+    question: That's great! Finally, tell me the date of your birth - one or two digits
+    validate_regexp: '[0123]?\d$'
+    validate_message: Please try again. Your answer should be a whole number - the day of your birth.
+
+exit:
+  suggest: 'Exit the test'
+  regexp: '(exit|quit)( the)? test'
+  message: You have chosen to quit the game. If you want to take it again, say "start the test"

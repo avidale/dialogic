@@ -1,0 +1,9 @@
+language: python
+python:
+    - "3.6"
+install:
+  - python setup.py -q install
+  - pip install pep8 pytest-cov
+script:
+  - pytest --cov=tgalice --cov-fail-under=58
+  - pep8 . --max-line-length 120

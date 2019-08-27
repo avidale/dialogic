@@ -58,7 +58,7 @@ class FormFillingDialogManager(CascadableDialogManager):
         self.config = FormConfig(config)
 
     def try_to_respond(self, ctx: Context):
-        user_object = ctx.user_object
+        user_object = ctx.user_object or {}
         normalized = basic_nlu.fast_normalize(ctx.message_text)
         form = user_object.get('forms', {}).get(self.config.form_name, {})
         if form.get('is_active'):

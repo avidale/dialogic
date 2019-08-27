@@ -68,8 +68,9 @@ class LoggedMessage:
         # todo: remove somehow duplication with standardize_input
         kwargs_user_id = kwargs.pop('user_id')
         return cls(
-            text=message.get('message', {}).get('text') or message.get('postback', {}).get('payload')
-                or message.get('text') or message.get('attachment', {}).get('payload', {}).get('text'),
+            text=(message.get('message', {}).get('text') or
+                  message.get('postback', {}).get('payload') or
+                  message.get('text') or message.get('attachment', {}).get('payload', {}).get('text')),
             user_id=message.get('sender', {}).get('id') or kwargs_user_id,
             from_user='sender' in message,
             data=message,
