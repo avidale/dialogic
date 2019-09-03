@@ -2,7 +2,7 @@ import copy
 import json
 import os
 
-from . import database_utils
+from tgalice.utils import database_utils
 
 
 class BaseStorage:
