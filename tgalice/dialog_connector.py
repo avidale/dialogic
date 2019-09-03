@@ -27,7 +27,10 @@ class DialogConnector:
             source = self.default_source
         user_id, message_text, metadata = self.standardize_input(source, message)
         user_object = self.get_user_object(user_id)
-        context = Context(user_object=user_object, message_text=message_text, metadata=metadata)
+        context = Context(
+            user_object=user_object, message_text=message_text, metadata=metadata,
+            source=source, raw_message=message
+        )
         response = self.dialog_manager.respond(context)
         if response.updated_user_object is not None and response.updated_user_object != user_object:
             self.set_user_object(user_id, response.updated_user_object)
@@ -45,13 +48,14 @@ class DialogConnector:
         self.storage.set(user_id, user_object)
 
     def standardize_input(self, source, message):
+        # todo: convert input to Context right here
         metadata = {}
         if source == SOURCES.TELEGRAM:
             user_id = source + '__' + str(message.from_user.id)
             message_text = message.text
         elif source == SOURCES.ALICE:
             user_id = source + '__' + message['session']['user_id']
-            message_text = message['request']['command']
+            message_text = message['request'].get('command')
             metadata['new_session'] = message.get('session', {}).get('new', False)
         elif source == SOURCES.FACEBOOK:
             user_id = source + '__' + message['sender']['id']
@@ -72,6 +76,8 @@ class DialogConnector:
                 else:
                     raise NotImplementedError('Command "{}" is not implemented'.format(command))
         if source == SOURCES.TELEGRAM:
+            if response.raw_response is not None:
+                return response.raw_response
             result = {
                 'text': response.text
             }
@@ -105,6 +111,9 @@ class DialogConnector:
                     "text": response.text
                 }
             }
+            if response.raw_response is not None:
+                result['response'] = response.raw_response
+                return result
             if response.voice is not None and response.voice != response.text:
                 result['response']['tts'] = response.voice
             buttons = response.links or []
@@ -119,10 +128,15 @@ class DialogConnector:
                     'type': 'BigImage',
                     'image_id': response.image_id,
                     'description': response.text
-                    # todo: enable 'title' and 'button' properties as well
                 }
+            if response.gallery is not None:
+                result['response']['card'] = response.gallery.to_dict()
+            if response.image is not None:
+                result['response']['card'] = response.image.to_dict()
             return result
         elif source == SOURCES.FACEBOOK:
+            if response.raw_response is not None:
+                return response.raw_response
             result = {'text': response.text}
             if response.suggests or response.links:
                 links = [{'type': 'web_url', 'title': l['title'], 'url': l['url']} for l in response.links]

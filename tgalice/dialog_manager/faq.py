@@ -15,7 +15,7 @@ class FAQDialogManager(CascadableDialogManager):
         super(FAQDialogManager, self).__init__(*args, **kwargs)
         if isinstance(config, str):
             with open(config, 'r', encoding='utf-8') as f:
-                self._cfg = yaml.load(f)
+                self._cfg = yaml.safe_load(f)
         elif isinstance(config, Iterable):
             self._cfg = config
         else:

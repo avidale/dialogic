@@ -1,3 +1,4 @@
+import distutils.util
 import warnings
 
 from html.parser import HTMLParser
@@ -32,10 +33,13 @@ class TTSParser(HTMLParser):
         self._current_tag = tag
         if tag == self.TAG_LINK:
             attrs_dict = dict(attrs)
+            print(attrs_dict)
             if 'href' not in attrs_dict:
-                print(attrs)
-                raise ValueError('The "a" tag has no "href" attribute')
-            self._links.append({'url': attrs_dict['href'], 'title': ''})
+                raise ValueError('The "a" tag has no "href" attribute; attrs: "{}".'.format(attrs))
+            link = {'url': attrs_dict['href'], 'title': ''}
+            if 'hide' in attrs_dict:
+                link['hide'] = bool(distutils.util.strtobool(attrs_dict['hide']))
+            self._links.append(link)
 
     def handle_endtag(self, tag):
         if self._current_tag is None:

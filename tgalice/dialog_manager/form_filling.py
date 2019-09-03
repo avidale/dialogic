@@ -28,7 +28,7 @@ class FormConfig:
     def __init__(self, config):
         if isinstance(config, str):
             with open(config, 'r', encoding='utf-8') as f:
-                self._cfg = yaml.load(f)
+                self._cfg = yaml.safe_load(f)
         elif isinstance(config, Mapping):
             self._cfg = config
         else:
