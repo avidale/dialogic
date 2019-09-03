@@ -180,7 +180,10 @@ class FlaskServer:
                         # todo : do something in case of attachments
         return "Message Processed"
 
-    def run_server(self, host="0.0.0.0", port=None):
+    def run_server(self, host="0.0.0.0", port=None, use_ngrok=False):
+        if use_ngrok:
+            from tgalice.flask_ngrok import run_with_ngrok
+            run_with_ngrok(self.app)
         if self.telegram_token is not None:
             self.telegram_web_hook()
         else:
@@ -202,10 +205,12 @@ class FlaskServer:
         parser = argparse.ArgumentParser(description='Run the bot')
         parser.add_argument('--cli', action='store_true', help='Run the bot locally in command line mode')
         parser.add_argument('--poll', action='store_true', help='Run the bot locally in polling mode (Telegram only)')
+        parser.add_argument('--ngrok', action='store_true',
+                            help='Run the bot locally with ngrok tunnel into the Internet')
         args = parser.parse_args()
         if args.cli:
             self.run_command_line()
         elif args.poll:
             self.run_local_telegram()
         else:
-            self.run_server()
+            self.run_server(use_ngrok=args.ngrok)

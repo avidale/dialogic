@@ -40,9 +40,16 @@ given to you by the [@BotFather](https://t.me/BotFather).
 If you want to test your app locally, you can run it with command line args:
 * `--cli` - to read and type messages in command line, completely offline
 * `--poll` - to run a Telegram bot locally, in long polling mode (in some countries, you need a VPN to do this)
+* `--ngrok` - to run the bot locally, using the [ngrok](https://ngrok.com/) tool<sup>[**](#footnote2)</sup> 
+to create a tunnel from your machine into the internet. This is probably the simplest way to test Alice skills 
+without deploying them anywhere .
 
 The [examples](https://github.com/avidale/tgalice/tree/master/example) directory contains more detailed examples 
 of how to create dialogs and serve the bot. 
 
-<a id="footnote1">*</a> The Telegram wrapper is based on the [pyTelegramBotAPI](https://github.com/eternnoir/pyTelegramBotAPI) 
-package. 
+<a id="footnote1">*</a> The Telegram wrapper is based on the 
+[pyTelegramBotAPI](https://github.com/eternnoir/pyTelegramBotAPI) package.
+
+<a id="footnote2">**</a> The ngrok connector was taken from the
+[flask-ngrok](https://github.com/gstaff/flask-ngrok) library. It will be refactored to a dependency, 
+as soon as the library is updated on PyPI.
