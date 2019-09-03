@@ -1,4 +1,6 @@
 # tgalice
+[![PyPI version](https://badge.fury.io/py/tgalice.svg)](https://badge.fury.io/py/tgalice)
+
 This is yet another common Python wrapper for Telegram bots<sup>[*](#footnote1)</sup>, Alice skills, 
 and Facebook Messenger bots.
 
