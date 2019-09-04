@@ -12,12 +12,12 @@ Currently, it provides:
 - A wrapper for storing dialogue state: `BaseStorage` and its flavors (specifially, `MongoBasedStorage`)
 - Yet another wrapper for serving your bot as a Flask application
 
-This [package](https://pypi.org/project/tgalice/) may be installed with 
-```
-pip install tgalice
-```
+This [package](https://pypi.org/project/tgalice/) may be installed with `pip install tgalice`
 
-The components of `tgalice` may be combined as follows:
+To create your own bot, you need either to write a config for an existing dialog manager, 
+or to inherit your own dialog manager from `BaseDialogManager`. 
+
+The components of `tgalice` may be combined into a working app as follows:
 ```python
 import tgalice
 
