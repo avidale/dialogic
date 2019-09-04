@@ -157,10 +157,10 @@ class FlaskServer:
         if use_ngrok:
             from tgalice.server.flask_ngrok import run_with_ngrok
             run_with_ngrok(self.app)
-        if self.telegram_token is not None:
+        if self.telegram_token is not None and self.base_url is not None:
             self.telegram_web_hook()
         else:
-            warnings.warn('Telegram token was not found, running for Alice only.')
+            warnings.warn('Either telegram token or base_url was not found; cannot run Telegram bot.')
         if port is None:
             port = int(os.environ.get('PORT', 5000))
         self.app.run(host=host, port=port)
