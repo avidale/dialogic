@@ -3,7 +3,7 @@ python:
     - "3.6"
 install:
   - python setup.py -q install
-  - pip install pep8 pytest-cov
+  - pip install mongomock pep8 pytest-cov
 script:
-  - pytest --cov=tgalice --cov-fail-under=53
+  - pytest --cov=tgalice --cov-fail-under=60
   - pep8 . --max-line-length 120

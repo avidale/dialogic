@@ -1,41 +1,41 @@
 import telebot
 
-from .session_storage import BaseStorage
+from tgalice.storage.session_storage import BaseStorage
 from .dialog_manager.base import Response, Context
-
-
-class SOURCES:
-    TELEGRAM = 'telegram'
-    ALICE = 'alice'
-    TEXT = 'text'
-    FACEBOOK = 'facebook'
-    unknown_source_error_message = 'Source must be on of {"telegram", "alice", "text", "facebook"}'
+from .dialog.names import COMMANDS, SOURCES
 
 
 class DialogConnector:
-    COMMAND_EXIT = 'exit'
     """ This class provides unified interface for both Telegram and Alice applications """
-    def __init__(self, dialog_manager, storage=None, default_source='telegram', tg_suggests_cols=1):
+    def __init__(self, dialog_manager, storage=None, log_storage=None, default_source='telegram', tg_suggests_cols=1):
         self.dialog_manager = dialog_manager
         self.default_source = default_source
         self.storage = storage or BaseStorage()
+        self.log_storage = log_storage  # noqa
         self.tg_suggests_cols = tg_suggests_cols
 
     def respond(self, message, source=None):
         # todo: support different triggers - not only messages, but calendar events as well
+        context = self.make_context(message=message, source=source)
+        if self.log_storage is not None:
+            self.log_storage.log_context(context)
+
+        response = self.dialog_manager.respond(context)
+        if response.updated_user_object is not None and response.updated_user_object != context.user_object:
+            self.set_user_object(context.user_id, response.updated_user_object)
+
+        result = self.standardize_output(source, message, response)
+        if self.log_storage is not None:
+            self.log_storage.log_response(data=result, context=context, source=context.source, response=response)
+        return result
+
+    def make_context(self, message, source=None):
         if source is None:
             source = self.default_source
-        user_id, message_text, metadata = self.standardize_input(source, message)
-        user_object = self.get_user_object(user_id)
-        context = Context(
-            user_object=user_object, message_text=message_text, metadata=metadata,
-            source=source, raw_message=message
-        )
-        response = self.dialog_manager.respond(context)
-        if response.updated_user_object is not None and response.updated_user_object != user_object:
-            self.set_user_object(user_id, response.updated_user_object)
-        response = self.standardize_output(source, message, response)
-        return response
+        context = Context.from_raw(source=source, message=message)
+        user_object = self.get_user_object(context.user_id)
+        context.add_user_object(user_object)
+        return context
 
     def get_user_object(self, user_id):
         if self.storage is None:
@@ -47,31 +47,11 @@ class DialogConnector:
             raise NotImplementedError()
         self.storage.set(user_id, user_object)
 
-    def standardize_input(self, source, message):
-        # todo: convert input to Context right here
-        metadata = {}
-        if source == SOURCES.TELEGRAM:
-            user_id = source + '__' + str(message.from_user.id)
-            message_text = message.text
-        elif source == SOURCES.ALICE:
-            user_id = source + '__' + message['session']['user_id']
-            message_text = message['request'].get('command')
-            metadata['new_session'] = message.get('session', {}).get('new', False)
-        elif source == SOURCES.FACEBOOK:
-            user_id = source + '__' + message['sender']['id']
-            message_text = message.get('message', {}).get('text') or message.get('postback', {}).get('payload')
-        elif source == SOURCES.TEXT:
-            user_id = 'the_text_user'
-            message_text = message
-        else:
-            raise ValueError(SOURCES.unknown_source_error_message)
-        return user_id, message_text, metadata
-
     def standardize_output(self, source, original_message, response: Response):
         has_exit_command = False
         if response.commands:
             for command in response.commands:
-                if command == self.COMMAND_EXIT:
+                if command == COMMANDS.EXIT:
                     has_exit_command = True
                 else:
                     raise NotImplementedError('Command "{}" is not implemented'.format(command))
@@ -168,6 +148,6 @@ class DialogConnector:
                 result = result + '\n' + ', '.join(['[{}]'.format(s) for s in response.suggests])
             if len(response.commands) > 0:
                 result = result + '\n' + ', '.join(['{{{}}}'.format(c) for c in response.commands])
-            return result, has_exit_command
+            return [result, has_exit_command]
         else:
             raise ValueError(SOURCES.unknown_source_error_message)

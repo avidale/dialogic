@@ -16,8 +16,8 @@ def handle_full_form(form, user_object, ctx):
 if __name__ == '__main__':
     connector = tgalice.dialog_connector.DialogConnector(
         dialog_manager=tgalice.dialog_manager.FormFillingDialogManager('form.yaml', default_message=HELP_MESSAGE),
-        storage=tgalice.session_storage.BaseStorage()
+        storage=tgalice.storage.session_storage.BaseStorage()
     )
     connector.dialog_manager.handle_completed_form = handle_full_form
-    server = tgalice.flask_server.FlaskServer(connector=connector)
+    server = tgalice.server.flask_server.FlaskServer(connector=connector)
     server.parse_args_and_run()

@@ -33,7 +33,6 @@ class TTSParser(HTMLParser):
         self._current_tag = tag
         if tag == self.TAG_LINK:
             attrs_dict = dict(attrs)
-            print(attrs_dict)
             if 'href' not in attrs_dict:
                 raise ValueError('The "a" tag has no "href" attribute; attrs: "{}".'.format(attrs))
             link = {'url': attrs_dict['href'], 'title': ''}

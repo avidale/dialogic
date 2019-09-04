@@ -59,6 +59,7 @@ def _download_ngrok(ngrok_path):
     elif system == "Linux":
         url = "https://bin.equinox.io/c/4VmDzA7iaHb/ngrok-stable-linux-amd64.zip"
     else:
+        # todo: make it work with ubuntu
         raise Exception(f"{system} is not supported")
     download_path = _download_file(url)
     with zipfile.ZipFile(download_path, "r") as zip_ref:

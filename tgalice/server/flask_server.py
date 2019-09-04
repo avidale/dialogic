@@ -10,8 +10,7 @@ import warnings
 from flask import Flask, request
 from pymessenger.bot import Bot as FacebookBot
 
-from .dialog_connector import DialogConnector, SOURCES
-from .message_logging import LoggedMessage
+from tgalice.dialog_connector import DialogConnector, SOURCES
 
 
 logger = logging.getLogger(__name__)
@@ -28,7 +27,6 @@ class FlaskServer:
             base_url=None,
             alice_url='alice/', telegram_url='tg/', facebook_url='fb/',
             restart_webhook_url='restart_webhook',
-            collection_for_logs=None, not_log_id=None
     ):
         self.telegram_token = telegram_token or os.environ.get('TOKEN')
         self.facebook_access_token = facebook_access_token or os.environ.get('FACEBOOK_ACCESS_TOKEN')
@@ -42,8 +40,6 @@ class FlaskServer:
         self.restart_webhook_url = restart_webhook_url
 
         self.connector = connector
-        self.collection_for_logs = collection_for_logs
-        self.not_log_id = not_log_id or set()
 
         self.app = Flask(__name__)
 
@@ -94,41 +90,23 @@ class FlaskServer:
     def telegram_webhook_url(self):
         return '/' + self.telegram_url + self.telegram_token
 
-    def log_message(self, data, source, **kwargs):
-        # todo: maybe make the logic a part of connector instead of flask server
-        if self.collection_for_logs is None:
-            return
-        if source == SOURCES.ALICE:
-            msg = LoggedMessage.from_alice(data, **kwargs)
-        elif source == SOURCES.TELEGRAM:
-            msg = LoggedMessage.from_telegram(data, **kwargs)
-        elif source == SOURCES.FACEBOOK:
-            msg = LoggedMessage.from_facebook(data, **kwargs)
-        else:
-            return
-        if self.not_log_id is not None and msg.user_id in self.not_log_id:
-            # main reason: don't log pings from Yandex
-            return
-        msg.save_to_mongo(self.collection_for_logs)
-
     def alice_response(self):
-        self.log_message(request.json, SOURCES.ALICE)
+        logger.info('Got message from Alice: {}'.format(request.json))
         response = self.connector.respond(request.json, source=SOURCES.ALICE)
-        self.log_message(response, SOURCES.ALICE)
+        logger.info('Sending message to Alice: {}'.format(response))
         return json.dumps(response, ensure_ascii=False, indent=2)
 
     def tg_response(self, message):
+        logger.info('Got message from Telegram: {}'.format(message))
         if message.message_id in self._processed_telegram_ids:
             # avoid duplicate response after the bot starts
-            # todo: log this event
+            logger.info('Telegram message id {} is duplicate, skipping it'.format(message.message_id))
             return
         self._processed_telegram_ids.add(message.message_id)
-        self.log_message(message, SOURCES.TELEGRAM)
+        # todo: cleanup old ids from _processed_telegram_ids
         response = self.connector.respond(message, source=SOURCES.TELEGRAM)
-        multimedia = response.pop('multimedia', [])
         telegram_response = self.bot.reply_to(message, **response)
-        response_text = response.pop('text', None)
-        # todo: maybe set response['reply_to_message_id'] = message.message_id
+        multimedia = response.pop('multimedia', [])
         for item in multimedia:
             if item['type'] == 'photo':
                 self.bot.send_photo(message.chat.id, photo=item['content'], **response)
@@ -136,7 +114,7 @@ class FlaskServer:
                 self.bot.send_document(message.chat.id, data=item['content'], **response)
             elif item['type'] == 'audio':
                 self.bot.send_audio(message.chat.id, audio=item['content'], **response)
-        self.log_message(telegram_response, SOURCES.TELEGRAM)
+        logger.info('Sent a response to Telegram: {}'.format(message))
 
     def get_tg_message(self):
         self.bot.process_new_updates([telebot.types.Update.de_json(request.stream.read().decode("utf-8"))])
@@ -164,25 +142,20 @@ class FlaskServer:
 
     def facebook_response(self):
         output = request.get_json()
+        logger.info('Got messages from Facebook: {}'.format(output))
         for event in output['entry']:
             messaging = event['messaging']
             for message in messaging:
                 if message.get('message') or message.get('postback'):
                     recipient_id = message['sender']['id']
-                    self.log_message(message, SOURCES.FACEBOOK, user_id=recipient_id)
-                    if message.get('message', {}).get('text') or message.get('postback'):
-                        response = self.connector.respond(message, source=SOURCES.FACEBOOK)
-                        self.facebook_bot.send_message(recipient_id, response)
-                        self.log_message(response, SOURCES.FACEBOOK, user_id=recipient_id)
-                    # if user sends us a GIF, photo,video, or any other non-text item
-                    elif message['message'].get('attachments'):
-                        pass
-                        # todo : do something in case of attachments
+                    response = self.connector.respond(message, source=SOURCES.FACEBOOK)
+                    logger.info('Sending message to Facebook: {}'.format(response))
+                    self.facebook_bot.send_message(recipient_id, response)
         return "Message Processed"
 
     def run_server(self, host="0.0.0.0", port=None, use_ngrok=False):
         if use_ngrok:
-            from tgalice.flask_ngrok import run_with_ngrok
+            from tgalice.server.flask_ngrok import run_with_ngrok
             run_with_ngrok(self.app)
         if self.telegram_token is not None:
             self.telegram_web_hook()

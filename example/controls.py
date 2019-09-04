@@ -121,7 +121,7 @@ RAW_GALLERY['card'] = {
 if __name__ == '__main__':
     connector = tgalice.dialog_connector.DialogConnector(
         dialog_manager=ControlsDialogManager(),
-        storage=tgalice.session_storage.BaseStorage()
+        storage=tgalice.storage.session_storage.BaseStorage()
     )
-    server = tgalice.flask_server.FlaskServer(connector=connector)
+    server = tgalice.server.flask_server.FlaskServer(connector=connector)
     server.parse_args_and_run()

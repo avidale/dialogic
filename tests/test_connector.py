@@ -44,10 +44,10 @@ def alice_message():
 
 def test_alice_input(alice_message):
     connector = DialogConnector(Repeater())
-    user_id, message_text, metadata = connector.standardize_input(SOURCES.ALICE, alice_message)
-    assert user_id == 'alice__user-id-1'
-    assert message_text == 'привет'
-    assert metadata['new_session']
+    ctx = connector.make_context(message=alice_message, source=SOURCES.ALICE)
+    assert ctx.user_id == 'alice__user-id-1'
+    assert ctx.message_text == 'привет'
+    assert ctx.metadata['new_session']
 
 
 def test_alice_response(alice_message):

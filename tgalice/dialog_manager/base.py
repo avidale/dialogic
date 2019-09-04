@@ -3,10 +3,7 @@ import typing
 
 from ..nlu import basic_nlu
 from ..dialog import Context, Response
-
-
-class COMMANDS:
-    EXIT = 'exit'
+from ..dialog.names import COMMANDS
 
 
 class BaseDialogManager:

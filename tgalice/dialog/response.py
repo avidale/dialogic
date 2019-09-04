@@ -7,7 +7,7 @@ class Response:
                  image_id=None, image_url=None, sound_url=None,
                  gallery=None, image=None,
                  user_object=None, raw_response=None,
-                 confidence=0.5
+                 confidence=0.5, label=None
                  ):
         self.text = text
         self.suggests = suggests or []
@@ -24,6 +24,7 @@ class Response:
         self.image = image
         assert self.image is None or isinstance(self.image, controls.BigImage)
         self.raw_response = raw_response
+        self.label = label
 
     def set_text(self, text_and_voice):
         parser = reply_markup.TTSParser()
