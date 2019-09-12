@@ -4,6 +4,7 @@ import random
 def make_unique(seq):
     """ Remove duplicates from a sequence (keep=first), without losing its ordering """
     seen = set()
+    # todo: make it work with dicts as well
     seen_add = seen.add
     return [x for x in seq if not (x in seen or seen_add(x))]
 

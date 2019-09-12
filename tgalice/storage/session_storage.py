@@ -1,3 +1,4 @@
+import codecs
 import copy
 import json
 import os
@@ -74,3 +75,27 @@ class MongoBasedStorage(BaseStorage):
             {'$set': {self.VALUE_NAME: value}},
             upsert=True
         )
+
+
+class S3BasedStorage(BaseStorage):
+    """ This wrapper is intended to work with a boto3 client - e.g. in Yandex.Cloud Object Storage. """
+    def __init__(self, s3_client, bucket_name, prefix=''):
+        super(BaseStorage, self).__init__()
+        self.s3_client = s3_client
+        self.bucket_name = bucket_name
+        self.prefix = prefix
+
+    def modify_key(self, key):
+        return self.prefix + key
+
+    def get(self, key):
+        try:
+            result = self.s3_client.get_object(Bucket=self.bucket_name, Key=self.modify_key(key))
+            body = result['Body']
+            reader = codecs.getreader("utf-8")
+            return json.load(reader(body))
+        except Exception as e:
+            if hasattr(e, 'response') and e.response.get('Error', {}).get('Code') == 'NoSuchKey':
+                return {}
+            else:
+                raise e

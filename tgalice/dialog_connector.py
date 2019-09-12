@@ -151,3 +151,7 @@ class DialogConnector:
             return [result, has_exit_command]
         else:
             raise ValueError(SOURCES.unknown_source_error_message)
+
+    def serverless_alice_handler(self, alice_request, context):
+        """ This method can be set as a hanlder if the skill is deployed as a Yandex.Cloud Serverless Function """
+        return self.respond(alice_request, source=SOURCES.ALICE)
