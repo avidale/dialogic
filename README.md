@@ -46,7 +46,7 @@ If you want to test your app locally, you can run it with command line args:
 to create a tunnel from your machine into the internet. This is probably the simplest way to test Alice skills 
 without deploying them anywhere .
 
-The [examples](https://github.com/avidale/tgalice/tree/master/example) directory contains more detailed examples 
+The [examples](https://github.com/avidale/tgalice/tree/master/examples) directory contains more detailed examples 
 of how to create dialogs and serve the bot. 
 
 <a id="footnote1">*</a> The Telegram wrapper is based on the 
