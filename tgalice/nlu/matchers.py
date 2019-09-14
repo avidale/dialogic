@@ -2,8 +2,24 @@ import math
 import textdistance
 
 from collections import Counter, Callable, defaultdict
+from itertools import chain
 
 from ..nlu import basic_nlu
+
+
+try:
+    from pyemd import emd
+    IMPORTED_EMD = True
+except ImportError:
+    emd = None
+    IMPORTED_EMD = False
+
+try:
+    import numpy as np
+    IMPORTED_NUMPY = True
+except ImportError:
+    np = None
+    IMPORTED_NUMPY = False
 
 
 class BaseMatcher:
@@ -84,7 +100,7 @@ class PairwiseMatcher(BaseMatcher):
 
     def preprocess(self, text):
         if self.text_normalization == 'fast':
-            text = basic_nlu.fast_normalize(text, lemmatize=True)
+            text = basic_nlu.fast_normalize(text, lemmatize=False)
         if self.text_normalization == 'fast_lemmatize':
             text = basic_nlu.fast_normalize(text, lemmatize=True)
         elif isinstance(self.text_normalization, Callable):
@@ -133,7 +149,7 @@ class JaccardMatcher(PairwiseMatcher):
 
     def compare(self, one, another):
         intersection = len(one.intersection(another))
-        union = len(one.intersection(another))
+        union = len(one.union(another))
         if intersection:
             return intersection / union
         return 0.0
@@ -202,6 +218,84 @@ class W2VMatcher(PairwiseMatcher):
         if one is None or another is None:
             return 0
         return sum(one * another)
+
+
+class WMDDocument:
+    def __init__(self, text, tokens, vecs, weights):
+        self.text = text
+        self.tokens = tokens
+        self.vecs = vecs
+        self.weights = weights
+
+
+class WMDMatcher(PairwiseMatcher):
+    """
+    Compare texts by Word Mover Distance between them .
+
+    When using this code, please consider citing the following papers:
+        .. Ofir Pele and Michael Werman, "A linear time histogram metric for improved SIFT matching".
+        .. Ofir Pele and Michael Werman, "Fast and robust earth mover's distances".
+        .. Matt Kusner et al. "From Word Embeddings To Document Distances".
+    """
+
+    def __init__(self, w2v, normalize_word_vec=True, *args, **kwargs):
+        if not IMPORTED_NUMPY:
+            raise ImportError('When using WMDMatcher, numpy should be installed')
+        if not IMPORTED_EMD:
+            raise ImportError('When using WMDMatcher, pyemd should be installed')
+        super(WMDMatcher, self).__init__(*args, **kwargs)
+        self.w2v = w2v
+        self.normalize_word_vec = normalize_word_vec
+
+    def vec_from_word(self, word):
+        vec = self.w2v[word]
+        if self.normalize_word_vec:
+            vec = vec / sum(vec ** 2) ** 0.5
+        return vec
+
+    def preprocess(self, text):
+        preprocessed_text = super(WMDMatcher, self).preprocess(text)
+        tokens = preprocessed_text.split()
+        valid_tokens = [t for t in tokens if t in self.w2v]
+        if len(valid_tokens) == 0:
+            return None
+        vecs = [self.vec_from_word(t) for t in valid_tokens]
+        weights = []
+        return WMDDocument(text, valid_tokens, vecs, weights)
+
+    def text2bow(self, tokens, word2idx):
+        bow = np.zeros(len(word2idx), dtype=np.double)
+        n = len(tokens)
+        for t in tokens:
+            bow[word2idx[t]] += 1.0 / n
+        return bow
+
+    def compare(self, one, another):
+        if one is None or another is None:
+            return 0
+
+        vocab = sorted(set(one.tokens).union(set(another.tokens)))
+        word2idx = {word: i for i, word in enumerate(vocab)}
+        word2vec = {}
+        for w, v in chain(zip(one.tokens, one.vecs), zip(another.tokens, another.vecs)):
+            if w not in word2vec:
+                word2vec[w] = v
+
+        distance_matrix = np.zeros((len(vocab), len(vocab)), dtype=np.double)
+        for i, t1 in enumerate(vocab):
+            for j, t2 in enumerate(vocab):
+                if t1 not in one.tokens or t2 not in another.tokens:
+                    continue
+                # Compute Euclidean distance between word vectors.
+                distance_matrix[i, j] = np.sqrt(np.sum((word2vec[t1] - word2vec[t2]) ** 2))
+
+        d1 = self.text2bow(one.tokens, word2idx)
+        d2 = self.text2bow(another.tokens, word2idx)
+
+        wmd = emd(d1, d2, distance_matrix)
+        # because we use unit vectors, this transformation mimics cosine distance
+        similarity = 1 - wmd ** 2 / 2
+        return similarity
 
 
 _matchers = dict()
