@@ -1,7 +1,7 @@
 import math
 import textdistance
 
-from collections import Counter, Callable, defaultdict
+from collections import Counter, Callable, defaultdict, Iterable
 from itertools import chain
 
 from ..nlu import basic_nlu
@@ -91,12 +91,33 @@ class ModelBasedMatcher(BaseMatcher):
 
 
 class PairwiseMatcher(BaseMatcher):
-    """ Classify text using 1-nearest neighbor by some similarity metric """
-    def __init__(self, *args, text_normalization='fast', **kwargs):
-        super(PairwiseMatcher, self).__init__(*args, **kwargs)
+    """
+    Classify text using 1-nearest neighbor by some similarity metric.
+    This is an abstract class; its descendants should implement the specific metric to compare preprocessed texts.
+
+    Parameters
+    ----------
+    text_normalization: string or callable
+        Describes how to preprocess the texts before matching.
+        Supported string values: 'fast' to lowercase and remove unusual characters; 'fast_lemmatize' to additionally
+        lemmatize words (russian only). Callable values should accept and return strings.
+    stopwords: iterable or mapping
+        Lists the words that should be discarded (if it is a list) or paid less attention
+        (if it is a dict with values in (0, 1) during matching. It may not be supported by all descendant matchers.
+    kwargs: dict
+        Passed to the parent constructor (BaseMatcher)
+    """
+    def __init__(self, text_normalization='fast', stopwords=None, **kwargs):
+        super(PairwiseMatcher, self).__init__(**kwargs)
         self.text_normalization = text_normalization
         self._texts = []
         self._labels = []
+
+        if stopwords is None:
+            stopwords = {}
+        if isinstance(stopwords, Iterable):
+            stopwords = {w: 0 for w in stopwords}
+        self.stopwords = stopwords
 
     def preprocess(self, text):
         if self.text_normalization == 'fast':
@@ -169,7 +190,10 @@ class TFIDFMatcher(PairwiseMatcher):
     def preprocess(self, text):
         text = super(TFIDFMatcher, self).preprocess(text)
         tf = Counter(self._tokenize(text))
-        return {w: tf / math.log(self.smooth + self.vocab[w]) for w, tf in tf.items()}
+        return {
+            w: tf / math.log(self.smooth + self.vocab[w]) * self.stopwords.get(w, 1)
+            for w, tf in tf.items()
+        }
 
     def compare(self, one, another):
         dot = self._dot(one, another)
