@@ -28,5 +28,10 @@ setuptools.setup(
         'pyyaml',
         'requests',  # it is needed by other packages, and somehow it is installed wrongly
         'textdistance',
-    ]
+    ],
+    extras_require={
+        'rumorph': ['pymorphy2[fast]', 'pymorphy2-dicts-ru'],  # todo: move them out of main requirements
+        'server': ['flask', 'pymessenger', 'pyTelegramBotAPI'],  # todo: move them out of main requirements
+        'w2v':  ['numpy', 'pyemd'],
+    }
 )
