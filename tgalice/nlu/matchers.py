@@ -1,7 +1,7 @@
 import math
 import textdistance
 
-from collections import Counter, Callable, defaultdict, Iterable
+from collections import Counter, Callable, defaultdict, Iterable, Mapping
 from itertools import chain
 
 from ..nlu import basic_nlu
@@ -115,8 +115,10 @@ class PairwiseMatcher(BaseMatcher):
 
         if stopwords is None:
             stopwords = {}
-        if isinstance(stopwords, Iterable):
+        if isinstance(stopwords, Iterable) and not isinstance(stopwords, Mapping):
             stopwords = {w: 0 for w in stopwords}
+        # todo: delay stopwords preprocessing until the descendant class has been initialized
+        stopwords = {PairwiseMatcher.preprocess(self, k): v for k, v in stopwords.items()}
         self.stopwords = stopwords
 
     def preprocess(self, text):
@@ -147,8 +149,8 @@ class ExactMatcher(PairwiseMatcher):
 
 
 class TextDistanceMatcher(PairwiseMatcher):
-    def __init__(self, *args, by_words=True, metric='cosine', **kwargs):
-        super(TextDistanceMatcher, self).__init__(*args, **kwargs)
+    def __init__(self, by_words=True, metric='cosine', **kwargs):
+        super(TextDistanceMatcher, self).__init__(**kwargs)
         self.by_words = by_words
         self.metric = metric
         self.fun = getattr(textdistance, metric).normalized_similarity
@@ -177,8 +179,8 @@ class JaccardMatcher(PairwiseMatcher):
 
 
 class TFIDFMatcher(PairwiseMatcher):
-    def __init__(self, *args, smooth=2.0, ngram=1, **kwargs):
-        super(TFIDFMatcher, self).__init__(*args, **kwargs)
+    def __init__(self, smooth=2.0, ngram=1, **kwargs):
+        super(TFIDFMatcher, self).__init__(**kwargs)
         self.smooth = smooth
         self.ngram = ngram
         self.vocab = Counter()
@@ -217,8 +219,8 @@ class TFIDFMatcher(PairwiseMatcher):
 
 class W2VMatcher(PairwiseMatcher):
     """ Compare texts by cosine similarity of their mean word vectors """
-    def __init__(self, w2v, normalize_word_vec=True, *args, **kwargs):
-        super(W2VMatcher, self).__init__(*args, **kwargs)
+    def __init__(self, w2v, normalize_word_vec=True, **kwargs):
+        super(W2VMatcher, self).__init__(**kwargs)
         self.w2v = w2v
         self.normalize_word_vec = normalize_word_vec
 
@@ -262,12 +264,12 @@ class WMDMatcher(PairwiseMatcher):
         .. Matt Kusner et al. "From Word Embeddings To Document Distances".
     """
 
-    def __init__(self, w2v, normalize_word_vec=True, *args, **kwargs):
+    def __init__(self, w2v, normalize_word_vec=True, **kwargs):
         if not IMPORTED_NUMPY:
             raise ImportError('When using WMDMatcher, numpy should be installed')
         if not IMPORTED_EMD:
             raise ImportError('When using WMDMatcher, pyemd should be installed')
-        super(WMDMatcher, self).__init__(*args, **kwargs)
+        super(WMDMatcher, self).__init__(**kwargs)
         self.w2v = w2v
         self.normalize_word_vec = normalize_word_vec
 
