@@ -99,3 +99,6 @@ class S3BasedStorage(BaseStorage):
                 return {}
             else:
                 raise e
+
+    def set(self, key, value):
+        self.s3_client.put_object(Bucket=self.bucket_name, Key=self.modify_key(key), Body=json.dumps(value))
