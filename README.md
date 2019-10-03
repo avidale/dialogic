@@ -12,7 +12,9 @@ Currently, it provides:
 - A wrapper for storing dialogue state: `BaseStorage` and its flavors (specifially, `MongoBasedStorage`)
 - Yet another wrapper for serving your bot as a Flask application
 
-This [package](https://pypi.org/project/tgalice/) may be installed with `pip install tgalice`
+This [package](https://pypi.org/project/tgalice/) may be installed with `pip install tgalice`.
+
+### A brief how-to
 
 To create your own bot, you need either to write a config for an existing dialog manager, 
 or to inherit your own dialog manager from `BaseDialogManager`. 
@@ -48,6 +50,8 @@ without deploying them anywhere .
 
 The [examples](https://github.com/avidale/tgalice/tree/master/examples) directory contains more detailed examples 
 of how to create dialogs and serve the bot. 
+
+If you have questions, you can ask them in the Telegram chat [@tgalice_support](https://t.me/tgalice_support).
 
 <a id="footnote1">*</a> The Telegram wrapper is based on the 
 [pyTelegramBotAPI](https://github.com/eternnoir/pyTelegramBotAPI) package.

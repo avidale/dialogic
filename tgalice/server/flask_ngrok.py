@@ -1,5 +1,5 @@
 """
-This module has been copied from https://github.com/gstaff/flask-ngrok
+This module has been copied from https://github.com/gstaff/flask-ngrok with a few small modification
 """
 
 import atexit
@@ -59,8 +59,7 @@ def _download_ngrok(ngrok_path):
     elif system == "Linux":
         url = "https://bin.equinox.io/c/4VmDzA7iaHb/ngrok-stable-linux-amd64.zip"
     else:
-        # todo: make it work with ubuntu
-        raise Exception(f"{system} is not supported")
+        raise Exception("{} is not supported".format(system))
     download_path = _download_file(url)
     with zipfile.ZipFile(download_path, "r") as zip_ref:
         zip_ref.extractall(ngrok_path)
@@ -77,8 +76,8 @@ def _download_file(url):
 
 def start_ngrok(port):
     ngrok_address = _run_ngrok(port)
-    print(f" * Running on {ngrok_address}")
-    print(f" * Traffic stats available on http://127.0.0.1:4040")
+    print(" * Running on {}".format(ngrok_address))
+    print(" * Traffic stats available on http://127.0.0.1:4040")
 
 
 def run_with_ngrok(app):
