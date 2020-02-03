@@ -165,6 +165,13 @@ class TextDistanceMatcher(PairwiseMatcher):
         return self.fun(one, another)
 
 
+class LevenshteinMatcher(TextDistanceMatcher):
+    def __init__(self, **kwargs):
+        kwargs['by_words'] = False
+        kwargs['metric'] = 'levenshtein'
+        super(LevenshteinMatcher, self).__init__(**kwargs)
+
+
 class JaccardMatcher(PairwiseMatcher):
     def preprocess(self, text):
         text = super(JaccardMatcher, self).preprocess(text)
