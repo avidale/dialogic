@@ -123,13 +123,13 @@ class BaseMessageLogger:
 
 
 class MongoMessageLogger(BaseMessageLogger):
-    def __init__(self, collection=None, database=None, collection_name='message_logs', **kwargs):
+    def __init__(self, collection=None, database=None, collection_name='message_logs', write_concern=0, **kwargs):
         super(MongoMessageLogger, self).__init__(**kwargs)
         self.collection = collection
         if self.collection is None:
             if database is None:
                 database = get_mongo_or_mock()
-            self.collection = database.get_collection(collection_name)
+            self.collection = database.get_collection(collection_name, write_concern=write_concern)
 
     def save_a_message(self, message_dict):
         self.collection.insert_one(message_dict)
