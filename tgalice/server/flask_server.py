@@ -27,8 +27,9 @@ class FlaskServer:
             base_url=None,
             alice_url='alice/', telegram_url='tg/', facebook_url='fb/',
             restart_webhook_url='restart_webhook',
+            app=None,
     ):
-        self.telegram_token = telegram_token or os.environ.get('TOKEN')
+        self.telegram_token = telegram_token or os.environ.get('TOKEN') or os.environ.get('TELEGRAM_TOKEN')
         self.facebook_access_token = facebook_access_token or os.environ.get('FACEBOOK_ACCESS_TOKEN')
         self.facebook_verify_token = facebook_verify_token or os.environ.get('FACEBOOK_VERIFY_TOKEN')
         if base_url is None:
@@ -41,7 +42,7 @@ class FlaskServer:
 
         self.connector = connector
 
-        self.app = Flask(__name__)
+        self.app = app or Flask(__name__)
 
         logger.info('The Alice webhook is available on "{}"'.format(self.alice_webhook_url))
         self.app.route(self.alice_webhook_url, methods=['POST'])(self.alice_response)
