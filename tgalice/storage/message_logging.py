@@ -30,6 +30,7 @@ class LoggedMessage:
             source
             data        (original message in Alice)
             label       (something like intent)
+            request_id  (this id the same for request and response, useful for joining logs)
         """
 
     def save_to_mongo(self, collection):
@@ -57,6 +58,8 @@ class LoggedMessage:
             kwargs['message_id'] = message.message_id
             kwargs['username'] = message.chat.username
             serializable_message = {'message': str(message)}
+        if context.request_id is not None:
+            kwargs['request_id'] = context.request_id
         return cls(
             text=context.message_text,
             user_id=context.user_id,
@@ -76,6 +79,8 @@ class LoggedMessage:
             # todo: maybe somehow get message_id for output messages
             if 'reply_markup' in data:
                 data['reply_markup'] = data['reply_markup'].to_json()
+        if context.request_id is not None:
+            kwargs['request_id'] = context.request_id
         return cls(
             text=response.text,
             user_id=context.user_id,

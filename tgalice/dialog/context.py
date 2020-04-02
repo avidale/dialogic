@@ -1,16 +1,18 @@
 import copy
+import uuid
 
 from .names import REQUEST_TYPES, SOURCES
 
 
 class Context:
     def __init__(
-            self, user_object, message_text, metadata, user_id=None, source=None, raw_message=None,
+            self, user_object, message_text, metadata, request_id=None, user_id=None, source=None, raw_message=None,
             request_type=REQUEST_TYPES.SIMPLE_UTTERANCE, payload=None
     ):
         self._user_object = copy.deepcopy(user_object)
         self.message_text = message_text
         self.metadata = metadata
+        self.request_id = request_id or str(uuid.uuid1())
         self.user_id = user_id
         self.source = source
         self.raw_message = raw_message

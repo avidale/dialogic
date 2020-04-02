@@ -92,6 +92,9 @@ def test_alice_logging_with_connector():
     assert first['data'] == input_message
     assert second['data'] == alice_response
 
+    assert first['request_id'] == second['request_id']
+    assert first['request_id'] is not None
+
 
 def test_tg_logging_with_connector():
     input_message_text = 'привет'
@@ -130,3 +133,6 @@ def test_tg_logging_with_connector():
 
     assert first['data'] == {'message': str(input_message)}
     assert second['data'] == tg_response
+
+    assert first['request_id'] != second['request_id']
+    assert first['request_id'] is not None
