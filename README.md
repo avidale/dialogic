@@ -5,7 +5,7 @@ This is yet another common Python wrapper for Telegram bots<sup>[*](#footnote1)<
 and Facebook Messenger bots.
 
 Currently, it provides:
-- An (almost) unified interface between your bot and Alice/Telegram/Facebook: `DialogConnector`
+- An (almost) unified interface between your bot and Alice/Telegram/Facebook/VK: `DialogConnector`
 - A number of simple dialogue constructors: `BaseDialogManager` and its flavors, including:
     - a simple FAQ dialog manager
     - a simple form-filling dialog manager

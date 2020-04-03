@@ -1,5 +1,8 @@
+import logging
 import re
 import tgalice
+
+logging.basicConfig(level=logging.DEBUG)
 
 MARINA_SONG_IN_ALICE = '<speaker audio="dialogs-upload/2067b0f4-0b8e-47d1-b264-d7f4dc572e4d/9a013d0b-6936-4b62-a18c-145b03acb84d.opus">'  # noqa
 MARINA_SONG_IN_WEB = 'https://filebin.net/s0tbsdw97u6jz1u0/marina.mp3?t=ka8zlp2p'
@@ -30,7 +33,7 @@ class ExampleMediaDialogManager(tgalice.dialog_manager.BaseDialogManager):
 
 
 if __name__ == '__main__':
-    connector = tgalice.dialog_connector.DialogConnector(
+    connector = tgalice.interfaces.dialog_connector.DialogConnector(
         dialog_manager=ExampleMediaDialogManager(),
         storage=tgalice.storage.session_storage.BaseStorage()
     )

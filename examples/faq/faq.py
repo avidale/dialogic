@@ -1,4 +1,7 @@
 import tgalice
+import logging
+
+logging.basicConfig(level=logging.DEBUG)
 
 
 TEXT_HELP = (
@@ -19,7 +22,7 @@ if __name__ == '__main__':
             exit_message='Всего доброго! Было приятно с вами пообщаться!'
         )
     )
-    connector = tgalice.dialog_connector.DialogConnector(
+    connector = tgalice.interfaces.dialog_connector.DialogConnector(
         dialog_manager=manager,
         storage=tgalice.storage.session_storage.BaseStorage()
     )

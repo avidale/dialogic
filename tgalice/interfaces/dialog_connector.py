@@ -1,13 +1,18 @@
+import json
 import telebot
 
 from tgalice.storage.session_storage import BaseStorage
-from .dialog_manager.base import Response, Context
-from .dialog.names import COMMANDS, SOURCES
+from tgalice.dialog_manager.base import Response, Context
+from tgalice.dialog.names import COMMANDS, SOURCES
 
 
 class DialogConnector:
     """ This class provides unified interface for both Telegram and Alice applications """
-    def __init__(self, dialog_manager, storage=None, log_storage=None, default_source='telegram', tg_suggests_cols=1):
+    def __init__(
+            self, dialog_manager,
+            storage=None, log_storage=None,
+            default_source=SOURCES.TELEGRAM, tg_suggests_cols=1,
+    ):
         self.dialog_manager = dialog_manager
         self.default_source = default_source
         self.storage = storage or BaseStorage()
@@ -149,6 +154,32 @@ class DialogConnector:
             if len(response.commands) > 0:
                 result = result + '\n' + ', '.join(['{{{}}}'.format(c) for c in response.commands])
             return [result, has_exit_command]
+        elif source == SOURCES.VK:
+            # todo: instead of a dict, use a class object as a response
+            # todo: add multimedia, etc.
+            result = {
+                'text': response.text,
+            }
+            if response.suggests or response.links:
+                rows = []
+                for i, link in enumerate(response.links):
+                    if i % self.tg_suggests_cols == 0:
+                        rows.append([])
+                    rows[-1].append({'action': {'type': 'open_link', 'label': link['title'], 'link': link['url']}})
+                for i, suggest in enumerate(response.suggests):
+                    if i % self.tg_suggests_cols == 0:
+                        rows.append([])
+                    rows[-1].append({'action': {'type': 'text', 'label': suggest}})
+                for row in rows:
+                    for button in row:
+                        label = button['action']['label']
+                        if len(label) > 40:
+                            button['action']['label'] = label[:37] + '...'
+                result['keyboard'] = {
+                    'one_time': True,
+                    'buttons': rows,
+                }
+            return result
         else:
             raise ValueError(SOURCES.unknown_source_error_message)
 

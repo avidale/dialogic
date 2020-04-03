@@ -1,5 +1,9 @@
 import copy
+import logging
 import tgalice
+
+
+logging.basicConfig(level=logging.DEBUG)
 
 
 SHOW_OBJECT_GALLERY = 'Объектная галерея'
@@ -7,7 +11,7 @@ SHOW_JSON_GALLERY = 'Галерея на json'
 SHOW_JSON_TEXT = 'Текст на json'
 SHOW_LOAD = 'Загрузка элементов'
 
-SUGGESTS = [SHOW_JSON_GALLERY, SHOW_JSON_GALLERY, SHOW_JSON_TEXT, SHOW_LOAD]
+SUGGESTS = [SHOW_JSON_GALLERY, SHOW_OBJECT_GALLERY, SHOW_JSON_TEXT, SHOW_LOAD]
 
 
 class ControlsDialogManager(tgalice.dialog_manager.BaseDialogManager):
@@ -27,7 +31,7 @@ class ControlsDialogManager(tgalice.dialog_manager.BaseDialogManager):
         elif ctx.message_text.lower() == SHOW_JSON_TEXT.lower():
             response.raw_response = RAW_TEXT
         elif ctx.message_text.lower() == SHOW_LOAD.lower():
-            response.set_text('Вот тут ссыль <a href="https://example.com" hide=false>ссыль</a>')
+            response.set_text('Вот тут ссыль <a href="https://github.com/avidale/tgalice" hide=false>ссыль</a>')
         response.suggests.extend(SUGGESTS)
         return response
 
@@ -119,9 +123,10 @@ RAW_GALLERY['card'] = {
 }
 
 if __name__ == '__main__':
-    connector = tgalice.dialog_connector.DialogConnector(
+    connector = tgalice.interfaces.dialog_connector.DialogConnector(
         dialog_manager=ControlsDialogManager(),
-        storage=tgalice.storage.session_storage.BaseStorage()
+        storage=tgalice.storage.session_storage.BaseStorage(),
+        tg_suggests_cols=2,
     )
     server = tgalice.server.flask_server.FlaskServer(connector=connector)
     server.parse_args_and_run()

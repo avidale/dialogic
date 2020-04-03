@@ -37,6 +37,9 @@ class Context:
         if source == SOURCES.TELEGRAM:
             user_id = source + '__' + str(message.from_user.id)
             message_text = message.text
+        elif source == SOURCES.VK:
+            user_id = source + '__' + str(message.user_id)
+            message_text = message.text
         elif source == SOURCES.ALICE:
             user_id = source + '__' + message['session']['user_id']
             message_text = message['request'].get('command', '')

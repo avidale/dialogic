@@ -1,6 +1,6 @@
 import pytest
 
-from tgalice.dialog_connector import DialogConnector, SOURCES
+from tgalice.interfaces.dialog_connector import DialogConnector, SOURCES
 from tgalice.dialog_manager import BaseDialogManager, Response
 
 

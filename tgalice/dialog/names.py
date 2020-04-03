@@ -1,10 +1,11 @@
 
 class SOURCES:
-    TELEGRAM = 'telegram'
     ALICE = 'alice'
-    TEXT = 'text'
     FACEBOOK = 'facebook'
-    unknown_source_error_message = 'Source must be on of {"telegram", "alice", "text", "facebook"}'
+    TELEGRAM = 'telegram'
+    TEXT = 'text'
+    VK = 'vk'
+    unknown_source_error_message = 'Source must be on of {"alice", "facebook", "telegram", "text", "vk"}'
 
 
 class COMMANDS:

@@ -58,6 +58,8 @@ class LoggedMessage:
             kwargs['message_id'] = message.message_id
             kwargs['username'] = message.chat.username
             serializable_message = {'message': str(message)}
+        elif context.source == SOURCES.VK:
+            serializable_message = {'message': context.raw_message.to_json()}
         if context.request_id is not None:
             kwargs['request_id'] = context.request_id
         return cls(

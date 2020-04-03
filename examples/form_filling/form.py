@@ -14,7 +14,7 @@ def handle_full_form(form, user_object, ctx):
 
 
 if __name__ == '__main__':
-    connector = tgalice.dialog_connector.DialogConnector(
+    connector = tgalice.interfaces.dialog_connector.DialogConnector(
         dialog_manager=tgalice.dialog_manager.FormFillingDialogManager('form.yaml', default_message=HELP_MESSAGE),
         storage=tgalice.storage.session_storage.BaseStorage()
     )

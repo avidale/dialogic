@@ -9,7 +9,7 @@ def test_text_logging_with_connector():
     input_message = 'hello bot'
     expected_response = 'This is the default message'
     dm = tgalice.dialog_manager.BaseDialogManager(default_message=expected_response)
-    connector = tgalice.dialog_connector.DialogConnector(
+    connector = tgalice.interfaces.dialog_connector.DialogConnector(
         dialog_manager=dm,
         log_storage=tgalice.storage.message_logging.MongoMessageLogger(database=database)
     )
@@ -69,7 +69,7 @@ def test_alice_logging_with_connector():
     expected_response_text = 'This is the default message'
     input_message_text = input_message['request']['command']
     dm = tgalice.dialog_manager.BaseDialogManager(default_message=expected_response_text)
-    connector = tgalice.dialog_connector.DialogConnector(
+    connector = tgalice.interfaces.dialog_connector.DialogConnector(
         dialog_manager=dm,
         log_storage=tgalice.storage.message_logging.MongoMessageLogger(database=database)
     )
@@ -108,7 +108,7 @@ def test_tg_logging_with_connector():
     database = get_mongo_or_mock()
     expected_response_text = 'This is the default message'
     dm = tgalice.dialog_manager.BaseDialogManager(default_message=expected_response_text)
-    connector = tgalice.dialog_connector.DialogConnector(
+    connector = tgalice.interfaces.dialog_connector.DialogConnector(
         dialog_manager=dm,
         log_storage=tgalice.storage.message_logging.MongoMessageLogger(database=database)
     )
