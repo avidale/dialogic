@@ -22,26 +22,49 @@ except ImportError:
     IMPORTED_NUMPY = False
 
 
+EPSILON = 1e-10
+
+
 class BaseMatcher:
     """ A base class for text classification with confidence """
-    def __init__(self, threshold=0.5):
+    def __init__(self, threshold=0.5, thresholds=None):
+        """ Create a base matcher
+        parameters:
+        - threshold: the minimal allowed similarity between the text and the example for a successful match
+        - thresholds: an optional dict of label-wise thresholds
+        """
         self.threshold = threshold
+        self.thresholds = thresholds or {}
 
     def fit(self, texts, labels):
         raise NotImplementedError()
 
     def match(self, text, use_threshold=True):
+        """ Return the label which is most similar to the text and its score.
+        If no example is similar enough, the winner label will be None.
+        """
         scores, labels = self.get_scores(text)
-        best_score = 0.0
+        best_score = -math.inf
         winner_label = None
         for score, label in zip(scores, labels):
-            if (score >= self.threshold or not use_threshold) and score > best_score:
+            threshold = self.thresholds.get(label, self.threshold)
+            if (score >= threshold or not use_threshold) and score > best_score:
                 best_score = score
                 winner_label = label
         return winner_label, best_score
 
     def get_scores(self, text):
         raise NotImplementedError()
+
+    def aggregate_scores(self, text, use_threshold=True):
+        """ Return a dict with the highest matching score for each label. """
+        result = Counter()
+        scores, labels = self.get_scores(text)
+        for score, label in zip(scores, labels):
+            threshold = self.thresholds.get(label, self.threshold)
+            if score >= threshold or not use_threshold:
+                result[label] = max(score, result.get(label, -math.inf))
+        return result
 
 
 class WeightedAverageMatcher(BaseMatcher):
@@ -206,7 +229,7 @@ class TFIDFMatcher(PairwiseMatcher):
 
     def compare(self, one, another):
         dot = self._dot(one, another)
-        if dot < 1e-6:
+        if abs(dot) < 1e-6:
             return 0.0
         return dot / math.sqrt(self._norm(one) * self._norm(another))
 
@@ -234,7 +257,7 @@ class W2VMatcher(PairwiseMatcher):
     def vec_from_word(self, word):
         vec = self.w2v[word]
         if self.normalize_word_vec:
-            vec = vec / sum(vec**2)**0.5
+            vec = vec / max(sum(vec**2), EPSILON) ** 0.5
         return vec
 
     def preprocess(self, text):
@@ -244,7 +267,7 @@ class W2VMatcher(PairwiseMatcher):
         if len(vecs) == 0:
             return None
         result = sum(vecs)
-        result = result / sum(result**2)**0.5
+        result = result / max(sum(result**2), EPSILON) ** 0.5
         return result
 
     def compare(self, one, another):
@@ -283,7 +306,7 @@ class WMDMatcher(PairwiseMatcher):
     def vec_from_word(self, word):
         vec = self.w2v[word]
         if self.normalize_word_vec:
-            vec = vec / sum(vec ** 2) ** 0.5
+            vec = vec / max(sum(vec ** 2), EPSILON) ** 0.5
         return vec
 
     def preprocess(self, text):

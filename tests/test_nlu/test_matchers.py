@@ -1,19 +1,23 @@
 import numpy as np
 import pytest
+import math
+
 
 from tgalice.nlu import matchers
 
 sample_texts = ['привет', 'добрый день', 'сколько времени']
 sample_labels = ['hello', 'hello', 'get_time']
 
+NO_MATCH = (None, -math.inf)
+
 
 def test_exact_matcher():
     matcher = matchers.make_matcher('exact')
     matcher.fit(sample_texts, sample_labels)
     assert matcher.match('привет') == ('hello', 1)
-    assert matcher.match('приветик') == (None, 0)
+    assert matcher.match('приветик') == NO_MATCH
     assert matcher.match('добрый день') == ('hello', 1)
-    assert matcher.match('день добрый') == (None, 0)
+    assert matcher.match('день добрый') == NO_MATCH
 
 
 def test_jaccard_matcher():
@@ -30,20 +34,23 @@ def test_tfidf_matcher():
     matcher = matchers.TFIDFMatcher(threshold=0.3, text_normalization='fast_lemmatize')
     matcher.fit(new_texts, new_labels)
     assert matcher.match('добрый день') == ('hello', 1)
-    assert matcher.match('добрый упоротыш') == (None, 0)
+    assert matcher.match('добрый упоротыш') == NO_MATCH
     assert matcher.match('добрый хомяк')[0] == 'animal'
     assert matcher.match('животное собака')[0] == 'animal'
 
 
-def test_average_matcher():
+@pytest.mark.parametrize('weights', [None, (1, 1), (0.2, 0.8)])
+def test_average_matcher(weights):
     matcher = matchers.WeightedAverageMatcher(
         matchers=[matchers.make_matcher('exact'), matchers.JaccardMatcher()],
-        threshold=0.1
+        threshold=0.1, weights=weights,
     )
     matcher.fit(sample_texts, sample_labels)
+    weights = weights or (0.5, 0.5)
+    w0, w1 = weights[0] / sum(weights), weights[1] / sum(weights)
     assert matcher.match('добрый день') == ('hello', 1)
-    assert matcher.match('добрый вечер') == ('hello', 1/3 * 0.5 + 0 * 0.5)
-    assert matcher.match('добрый') == ('hello', 1/2 * 0.5 + 0 * 0.5)
+    assert matcher.match('добрый вечер') == ('hello', 0 * w0 + 1/3 * w1)
+    assert matcher.match('добрый') == ('hello', 0 * w0 + 1/2 * w1)
 
 
 class PrefixModel:
@@ -68,7 +75,6 @@ class PrefixModel:
                 result += 1
             else:
                 break
-        print(result)
         return result * 2.0 / (len(lhs) + len(rhs))
 
     def predict_proba(self, X):
@@ -104,7 +110,15 @@ def test_vectorized_matcher(matcher_class):
     matcher = matcher_class(w2v=w2v)
     matcher.fit(sample_texts, sample_labels)
     assert matcher.match('времени сколько') == ('get_time', 1)
-    assert matcher.match('абракадабра') == (None, 0)
+    assert matcher.match('абракадабра') == NO_MATCH
     label, score = matcher.match('злой ночь')
     assert label == 'hello'
     assert 0.95 < score < 0.99
+
+
+def test_scores_aggregation():
+    matcher = matchers.JaccardMatcher(threshold=0.1)
+    matcher.fit(sample_texts, sample_labels)
+    assert matcher.aggregate_scores('добрый день') == {'hello': 1}
+    assert matcher.aggregate_scores('добрый день', use_threshold=False) == {'hello': 1, 'get_time': 0}
+    assert matcher.aggregate_scores('привет сколько времени') == {'hello': 1/3, 'get_time': 2/3}
