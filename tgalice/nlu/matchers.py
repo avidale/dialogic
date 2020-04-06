@@ -1,5 +1,7 @@
 import math
 import textdistance
+import re
+import typing
 
 from collections import Counter, Callable, defaultdict, Iterable, Mapping
 from itertools import chain
@@ -39,7 +41,7 @@ class BaseMatcher:
     def fit(self, texts, labels):
         raise NotImplementedError()
 
-    def match(self, text, use_threshold=True):
+    def match(self, text: str, use_threshold=True):
         """ Return the label which is most similar to the text and its score.
         If no example is similar enough, the winner label will be None.
         """
@@ -53,10 +55,11 @@ class BaseMatcher:
                 winner_label = label
         return winner_label, best_score
 
-    def get_scores(self, text):
+    def get_scores(self, text: str) -> typing.Tuple[typing.List[float], typing.List]:
+        """ Return the list of matching scores and their corresponding labels """
         raise NotImplementedError()
 
-    def aggregate_scores(self, text, use_threshold=True):
+    def aggregate_scores(self, text: str, use_threshold=True):
         """ Return a dict with the highest matching score for each label. """
         result = Counter()
         scores, labels = self.get_scores(text)
@@ -67,11 +70,42 @@ class BaseMatcher:
         return result
 
 
-class WeightedAverageMatcher(BaseMatcher):
-    def __init__(self, matchers, weights=None, **kwargs):
-        super(WeightedAverageMatcher, self).__init__(**kwargs)
+class AggregationMatcher(BaseMatcher):
+    def __init__(self, matchers, **kwargs):
+        super(AggregationMatcher, self).__init__(**kwargs)
         assert len(matchers) > 0, 'list of matchers should be non-empty'
         self.matchers = matchers
+
+    def fit(self, texts, labels):
+        for m in self.matchers:
+            m.fit(texts, labels)
+
+    def _apply_matchers(self, text):
+        label2matchers2scores = defaultdict(lambda: defaultdict(lambda: 0))
+        for i, m in enumerate(self.matchers):
+            scores, labels = m.get_scores(text)
+            for l, s in zip(labels, scores):
+                if s > label2matchers2scores[l][i]:
+                    label2matchers2scores[l][i] = s
+        return label2matchers2scores
+
+
+class MaxMatcher(AggregationMatcher):
+    def get_scores(self, text):
+        label2matchers2scores = self._apply_matchers(text)
+        labels = []
+        scores = []
+        for l, ldict in label2matchers2scores.items():
+            if not ldict:
+                continue
+            labels.append(l)
+            scores.append(max(ldict.values()))
+        return scores, labels
+
+
+class WeightedAverageMatcher(AggregationMatcher):
+    def __init__(self, matchers, weights=None, **kwargs):
+        super(WeightedAverageMatcher, self).__init__(matchers, **kwargs)
         if weights is None:
             weights = [1.0 for m in self.matchers]
         else:
@@ -79,17 +113,8 @@ class WeightedAverageMatcher(BaseMatcher):
         total_weight = float(sum(weights))
         self.weights = [w / total_weight for w in weights]
 
-    def fit(self, texts, labels):
-        for m in self.matchers:
-            m.fit(texts, labels)
-
     def get_scores(self, text):
-        label2matchers2scores = defaultdict(lambda: defaultdict(lambda: 0))
-        for i, m in enumerate(self.matchers):
-            scores, labels = m.get_scores(text)
-            for l, s in zip(labels, scores):
-                if s > label2matchers2scores[l][i]:
-                    label2matchers2scores[l][i] = s
+        label2matchers2scores = self._apply_matchers(text)
         labels = []
         scores = []
         for l, ldict in label2matchers2scores.items():
@@ -110,6 +135,41 @@ class ModelBasedMatcher(BaseMatcher):
     def get_scores(self, text):
         scores = self.model.predict_proba([text])[0]
         labels = self.model.classes_
+        return scores, labels
+
+
+class RegexMatcher(BaseMatcher):
+    """ This matcher returns matching score 1,
+    if the text matches one of the provided expressions for the label, and 0 otherwise.
+    The parameter `add_end` forcibly wraps each expression between `^` and `$` symbols, disabling partial prefix match.
+    """
+    def __init__(self, *args, add_end=True, **kwargs):
+        super(RegexMatcher, self).__init__(*args, **kwargs)
+        self.add_end = add_end
+        self.expressions = {}
+
+    def fit(self, texts, labels):
+        parts = defaultdict(list)
+        for text, label in zip(texts, labels):
+            parts[label].append(text)
+        self.expressions = {
+            label: re.compile('(?:{})'.format('|'.join([self._wrap(e) for e in expressions])))
+            for label, expressions in parts.items()
+        }
+        for label, expressions in parts.items():
+            print(label, '(?:{})'.format('|'.join([self._wrap(e) for e in expressions])))
+
+    def _wrap(self, text):
+        if self.add_end:
+            return '^{}$'.format(text)
+        return text
+
+    def get_scores(self, text):
+        scores = []
+        labels = []
+        for label, expression in self.expressions.items():
+            labels.append(label)
+            scores.append(float(bool(re.match(expression, text))))
         return scores, labels
 
 

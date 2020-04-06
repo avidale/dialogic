@@ -53,6 +53,17 @@ def test_average_matcher(weights):
     assert matcher.match('добрый') == ('hello', 0 * w0 + 1/2 * w1)
 
 
+def test_max_matcher():
+    matcher = matchers.MaxMatcher(
+        matchers=[matchers.make_matcher('exact'), matchers.JaccardMatcher()],
+        threshold=0.1,
+    )
+    matcher.fit(sample_texts, sample_labels)
+    assert matcher.match('добрый день') == ('hello', 1)
+    assert matcher.match('добрый вечер') == ('hello', 1/3)
+    assert matcher.match('добрый') == ('hello', 1/2)
+
+
 class PrefixModel:
     """ Its main goal is to mimic interface of scikit-learn models """
     def __init__(self):
@@ -122,3 +133,19 @@ def test_scores_aggregation():
     assert matcher.aggregate_scores('добрый день') == {'hello': 1}
     assert matcher.aggregate_scores('добрый день', use_threshold=False) == {'hello': 1, 'get_time': 0}
     assert matcher.aggregate_scores('привет сколько времени') == {'hello': 1/3, 'get_time': 2/3}
+
+
+def test_regex_matcher():
+    more_texts = sample_texts + ['.*врем.*']
+    more_labels = sample_labels + ['get_time']
+
+    matcher = matchers.RegexMatcher(add_end=False)
+    matcher.fit(more_texts, more_labels)
+    assert matcher.aggregate_scores('привет мир') == {'hello': 1}
+    assert matcher.aggregate_scores('привет расскажи время') == {'get_time': 1, 'hello': 1}
+
+    matcher = matchers.RegexMatcher(add_end=True)
+    matcher.fit(more_texts, more_labels)
+    assert matcher.aggregate_scores('привет мир') == {}
+    assert matcher.aggregate_scores('расскажи время') == {'get_time': 1}
+    assert matcher.aggregate_scores('привет расскажи время') == {'get_time': 1}
