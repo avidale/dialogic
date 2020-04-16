@@ -1,11 +1,19 @@
+import pytest
 import tgalice
 import telebot
 
 from tgalice.storage.database_utils import get_mongo_or_mock
 
 
-def test_text_logging_with_connector():
+@pytest.fixture
+def empty_db():
     database = get_mongo_or_mock()
+    database.get_collection('message_logs').drop()
+    return database
+
+
+def test_text_logging_with_connector(empty_db):
+    database = empty_db
     input_message = 'hello bot'
     expected_response = 'This is the default message'
     dm = tgalice.dialog_manager.BaseDialogManager(default_message=expected_response)
@@ -33,7 +41,7 @@ def test_text_logging_with_connector():
     assert second['data'] == text_response
 
 
-def test_alice_logging_with_connector():
+def test_alice_logging_with_connector(empty_db):
     input_message = {
         "meta": {
             "locale": "ru-RU",
@@ -65,7 +73,7 @@ def test_alice_logging_with_connector():
         },
         "version": "1.0"
     }
-    database = get_mongo_or_mock()
+    database = empty_db
     expected_response_text = 'This is the default message'
     input_message_text = input_message['request']['command']
     dm = tgalice.dialog_manager.BaseDialogManager(default_message=expected_response_text)
@@ -96,7 +104,7 @@ def test_alice_logging_with_connector():
     assert first['request_id'] is not None
 
 
-def test_tg_logging_with_connector():
+def test_tg_logging_with_connector(empty_db):
     input_message_text = 'привет'
     input_message = telebot.types.Message(
         message_id=123,
@@ -105,7 +113,7 @@ def test_tg_logging_with_connector():
         date=None, content_type='text', json_string=None,
         options={'text': input_message_text}
     )
-    database = get_mongo_or_mock()
+    database = empty_db
     expected_response_text = 'This is the default message'
     dm = tgalice.dialog_manager.BaseDialogManager(default_message=expected_response_text)
     connector = tgalice.interfaces.dialog_connector.DialogConnector(

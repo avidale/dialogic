@@ -1,5 +1,6 @@
-import json
 import telebot
+
+import tgalice.utils
 
 from tgalice.storage.session_storage import BaseStorage
 from tgalice.dialog_manager.base import Response, Context
@@ -86,6 +87,7 @@ class DialogConnector:
                 if 'multimedia' not in result:
                     result['multimedia'] = []
                 result['multimedia'].append({'type': 'audio', 'content': response.sound_url})
+            result['disable_web_page_preview'] = True
             return result
         elif source == SOURCES.ALICE:
             result = {
@@ -102,6 +104,10 @@ class DialogConnector:
             if response.voice is not None and response.voice != response.text:
                 result['response']['tts'] = response.voice
             buttons = response.links or []
+            for button in buttons:
+                # avoid cyrillic characters in urls - they are not supported by Alice
+                if 'url' in button:
+                    button['url'] = tgalice.utils.text.encode_uri(button['url'])
             if response.suggests:
                 buttons = buttons + [{'title': suggest} for suggest in response.suggests]
             for button in buttons:

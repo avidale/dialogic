@@ -81,8 +81,8 @@ class PrefixModel:
         if lhs == rhs == '':
             return 0.0
         result = 0
-        for l, r in zip(lhs, rhs):
-            if l == r:
+        for left, right in zip(lhs, rhs):
+            if left == right:
                 result += 1
             else:
                 break

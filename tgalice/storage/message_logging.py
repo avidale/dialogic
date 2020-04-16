@@ -2,11 +2,16 @@ import copy
 import logging
 
 from datetime import datetime
-from telebot import types as teletypes
 
 from tgalice.dialog import Context, Response
 from tgalice.dialog.names import SOURCES
 from tgalice.storage.database_utils import get_mongo_or_mock
+
+
+try:
+    import pymongo
+except ModuleNotFoundError:
+    pymongo = None
 
 
 logger = logging.getLogger(__name__)
@@ -136,6 +141,8 @@ class MongoMessageLogger(BaseMessageLogger):
         if self.collection is None:
             if database is None:
                 database = get_mongo_or_mock()
+            if pymongo and not isinstance(write_concern, pymongo.write_concern.WriteConcern):
+                write_concern = pymongo.write_concern.WriteConcern(w=write_concern)
             self.collection = database.get_collection(collection_name, write_concern=write_concern)
 
     def save_a_message(self, message_dict):

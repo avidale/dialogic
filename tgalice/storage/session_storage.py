@@ -29,11 +29,13 @@ class FileBasedStorage(BaseStorage):
                 self.dump_dict(path, {})
 
     def dump_dict(self, filename, data):
-        with open(filename, 'w') as f:
-            json.dump(data, f, indent=2)
+        with open(filename, 'w', encoding='utf-8') as f:
+            json.dump(data, f, indent=2, ensure_ascii=False)
 
     def load_dict(self, filename):
-        with open(filename, 'r') as f:
+        if not os.path.exists(filename):
+            return {}
+        with open(filename, 'r', encoding='utf-8') as f:
             result = json.load(f)
         return result
 

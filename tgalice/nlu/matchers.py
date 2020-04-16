@@ -3,7 +3,8 @@ import textdistance
 import re
 import typing
 
-from collections import Counter, Callable, defaultdict, Iterable, Mapping
+from collections import Counter, defaultdict
+from collections.abc import Callable, Iterable, Mapping
 from itertools import chain
 
 from ..nlu import basic_nlu
@@ -41,6 +42,9 @@ class BaseMatcher:
     def fit(self, texts, labels):
         raise NotImplementedError()
 
+    def get_threshold(self, label):
+        return self.thresholds.get(label, self.threshold)
+
     def match(self, text: str, use_threshold=True):
         """ Return the label which is most similar to the text and its score.
         If no example is similar enough, the winner label will be None.
@@ -49,8 +53,7 @@ class BaseMatcher:
         best_score = -math.inf
         winner_label = None
         for score, label in zip(scores, labels):
-            threshold = self.thresholds.get(label, self.threshold)
-            if (score >= threshold or not use_threshold) and score > best_score:
+            if (score >= self.get_threshold(label) or not use_threshold) and score > best_score:
                 best_score = score
                 winner_label = label
         return winner_label, best_score
@@ -64,8 +67,7 @@ class BaseMatcher:
         result = Counter()
         scores, labels = self.get_scores(text)
         for score, label in zip(scores, labels):
-            threshold = self.thresholds.get(label, self.threshold)
-            if score >= threshold or not use_threshold:
+            if score >= self.get_threshold(label) or not use_threshold:
                 result[label] = max(score, result.get(label, -math.inf))
         return result
 
@@ -80,13 +82,15 @@ class AggregationMatcher(BaseMatcher):
         for m in self.matchers:
             m.fit(texts, labels)
 
-    def _apply_matchers(self, text):
-        label2matchers2scores = defaultdict(lambda: defaultdict(lambda: 0))
+    def _apply_matchers(self, text, use_threshold=False):
+        label2matchers2scores = defaultdict(lambda: defaultdict(lambda: -math.inf))
         for i, m in enumerate(self.matchers):
             scores, labels = m.get_scores(text)
-            for l, s in zip(labels, scores):
-                if s > label2matchers2scores[l][i]:
-                    label2matchers2scores[l][i] = s
+            for label, score in zip(labels, scores):
+                if score > label2matchers2scores[label][i]:
+                    if use_threshold and score < self.get_threshold(label):
+                        continue
+                    label2matchers2scores[label][i] = score
         return label2matchers2scores
 
 
@@ -118,8 +122,9 @@ class WeightedAverageMatcher(AggregationMatcher):
         labels = []
         scores = []
         for l, ldict in label2matchers2scores.items():
+            score = sum(w * ldict[i] for i, w in enumerate(self.weights))
             labels.append(l)
-            scores.append(sum(w * ldict[i] for i, w in enumerate(self.weights)))
+            scores.append(score)
         return scores, labels
 
 

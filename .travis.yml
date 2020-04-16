@@ -3,7 +3,7 @@ python:
     - "3.6"
 install:
   - python setup.py -q install
-  - pip install mongomock pycodestyle pytest-cov numpy pyemd pymorphy2
+  - pip install mongomock pymongo pycodestyle pytest-cov numpy pyemd pymorphy2
 script:
   - pytest --cov=tgalice --cov-fail-under=67
   - pycodestyle . --max-line-length 120
