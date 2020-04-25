@@ -1,0 +1,83 @@
+options:
+  initial_state: MAIN
+
+intents:
+  CONFIRM_YES:
+    examples:
+      - да
+      - ага
+      - конечно
+      - давай
+  CONFIRM_NO:
+    examples:
+      - нет
+      - не надо
+
+states:  # aka nodes
+  MAIN:
+    q:
+      - Меню
+      - Главное меню
+    a: 'Приветствую! Выберите опцию: чай, кофе, или потанцуем.'
+    next:
+      - suggest: Чай
+        label: TEA
+      - suggest: Кофе
+        label: COFFEE
+      - suggest: Танцевать
+        label: DANCE
+  TEA:
+    a: Какого чаю хотите? Чёрного, зелёного, или красного?
+    next:
+      - suggest: Чёрного
+        regexp: черн.*
+        label: BLACK_TEA
+      - suggest: Зелёного
+        regexp: зелен.*
+        label: GREEN_TEA
+      - suggest: Красного
+        regexp: красн.*
+        label: RED_TEA
+  COFFEE:
+    a: Какого кофе хотите? Эспрессо, американо, капучино, латте?
+    default_next: NO_COFFEE
+  DANCE:
+    q:
+      - танцевать
+      - потанцуем
+      - плясать
+      - танец
+    a: Круто, давайте плясать!
+  RED_TEA:
+    a: Вот вам лучший каркаде Египта, угощайтесь!
+  GREEN_TEA:
+    q:
+      - зеленый чай
+      - улун
+    a: Завариваю для вас редкий тибетский улун.
+  BLACK_TEA:
+    a: Сейчас сделаю вам чёрного чайку покрепче
+  RANDOM:
+    q:
+      - посоветуй
+      - дай совет
+      - порекомендуй что-нибудь
+      - выбери за меня
+    a:
+      - Хотите чаю?
+    next:
+      - suggest: Да
+        intent: CONFIRM_YES
+        label: TEA
+      - suggest: Нет
+        intent: CONFIRM_NO
+        label: MAIN
+  NO_COFFEE:
+    a: Простите, кофе закончился. Хотите чаю?
+    next:
+      - suggest: Да
+        intent: CONFIRM_YES
+        label: TEA
+      - suggest: Нет
+        intent: CONFIRM_NO
+        label: MAIN

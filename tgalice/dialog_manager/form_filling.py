@@ -1,10 +1,8 @@
 import re
-import yaml
-
-from collections import Mapping
 
 from .base import CascadableDialogManager, Context, Response
-from ..nlu import basic_nlu, matchers
+from tgalice.nlu import basic_nlu, matchers
+from tgalice.utils.configuration import load_config
 
 
 class FieldConfig:
@@ -26,13 +24,7 @@ class FieldConfig:
 
 class FormConfig:
     def __init__(self, config):
-        if isinstance(config, str):
-            with open(config, 'r', encoding='utf-8') as f:
-                self._cfg = yaml.safe_load(f)
-        elif isinstance(config, Mapping):
-            self._cfg = config
-        else:
-            raise ValueError('Config should be a yaml filename or a dict')
+        self._cfg = load_config(config)
         # todo: validate everything
         self.form_name = self._cfg['form_name']
 
@@ -82,24 +74,30 @@ class FormFillingDialogManager(CascadableDialogManager):
             else:
                 return self.ask_question(question_id, user_object=user_object, reask=True)
         elif re.match(self.config.start_regex, normalized):
-            if 'forms' not in user_object:
-                user_object['forms'] = {}
-            # todo: if there is no start message, move directly to question 0
-            user_object['forms'][self.config.form_name] = {
-                'fields': {},
-                'is_active': True,
-                'next_question': -1
-            }
-            form = user_object['forms'][self.config.form_name]
-            if self.config.start_message is not None:
-                form['next_question'] = -1
-                return Response(
-                    text=self.config.start_message, suggests=self.config.start_suggests, user_object=user_object
-                )
-            else:
-                form['next_question'] = 0
-                return self.ask_question(0, user_object, reask=False)
+            return self.start_dialogue(ctx)
         return None
+
+    def start_dialogue(self, ctx: Context):
+        """ Initialize the form, and say the intro or ask the first question.
+        This function is taken out of try_to_respond, so that it could be triggered by some external factor.
+        """
+        user_object = ctx.user_object or {}
+        if 'forms' not in user_object:
+            user_object['forms'] = {}
+        user_object['forms'][self.config.form_name] = {
+            'fields': {},
+            'is_active': True,
+            'next_question': -1
+        }
+        form = user_object['forms'][self.config.form_name]
+        if self.config.start_message is not None:
+            form['next_question'] = -1
+            return Response(
+                text=self.config.start_message, suggests=self.config.start_suggests, user_object=user_object
+            )
+        else:
+            form['next_question'] = 0
+            return self.ask_question(0, user_object, reask=False)
 
     def ask_question(self, next_question_id, user_object, reask=False):
         the_question = self.config.fields[next_question_id]
@@ -136,5 +134,8 @@ class FormFillingDialogManager(CascadableDialogManager):
         return message_text
 
     def handle_completed_form(self, form, user_object, ctx):
-        """ This method can be overwritten to do something useful """
+        """ This method can be overwritten to do something useful.
+        If it is not overwritten, then the dialog ends by the `finish_message` from config.
+        If it is overwritten, then it should probably put the updated `user_object` argument into its Response.
+        """
         return None

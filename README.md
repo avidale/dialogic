@@ -9,6 +9,7 @@ Currently, it provides:
 - A number of simple dialogue constructors: `BaseDialogManager` and its flavors, including:
     - a simple FAQ dialog manager
     - a simple form-filling dialog manager
+    - a flexible finite state automaton dialog manager
 - A wrapper for storing dialogue state: `BaseStorage` and its flavors (specifially, `MongoBasedStorage`)
 - Yet another wrapper for serving your bot as a Flask application
 

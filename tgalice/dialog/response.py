@@ -26,6 +26,11 @@ class Response:
         self.raw_response = raw_response
         self.label = label
 
+    @property
+    def user_object(self):
+        # make it readonly, for clarity
+        return self.updated_user_object
+
     def set_text(self, text_and_voice):
         parser = reply_markup.TTSParser()
         try:
