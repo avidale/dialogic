@@ -123,7 +123,7 @@ RAW_GALLERY['card'] = {
 }
 
 if __name__ == '__main__':
-    connector = tgalice.interfaces.dialog_connector.DialogConnector(
+    connector = tgalice.dialog_connector.DialogConnector(
         dialog_manager=ControlsDialogManager(),
         storage=tgalice.storage.session_storage.BaseStorage(),
         tg_suggests_cols=2,

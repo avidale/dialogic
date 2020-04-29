@@ -22,7 +22,7 @@ if __name__ == '__main__':
             exit_message='Всего доброго! Было приятно с вами пообщаться!'
         )
     )
-    connector = tgalice.interfaces.dialog_connector.DialogConnector(
+    connector = tgalice.dialog_connector.DialogConnector(
         dialog_manager=manager,
         storage=tgalice.storage.session_storage.BaseStorage()
     )

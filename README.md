@@ -1,8 +1,9 @@
 # tgalice
 [![PyPI version](https://badge.fury.io/py/tgalice.svg)](https://badge.fury.io/py/tgalice)
 
-This is yet another common Python wrapper for Telegram bots<sup>[*](#footnote1)</sup>, Alice skills, 
-and Facebook Messenger bots.
+This is yet another common Python wrapper for Alice skills 
+and bots in Telegram<sup>[*](#footnote1)</sup>, VK, 
+and Facebook Messenger.
 
 Currently, it provides:
 - An (almost) unified interface between your bot and Alice/Telegram/Facebook/VK: `DialogConnector`

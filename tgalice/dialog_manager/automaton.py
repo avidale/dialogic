@@ -9,7 +9,7 @@ Automaton dialog manager is based on several concepts:
 import attr
 import copy
 
-from collections import defaultdict, OrderedDict
+from collections import Counter, defaultdict, OrderedDict
 from collections.abc import Mapping
 from typing import Dict, Optional, Tuple
 
@@ -282,10 +282,17 @@ class AutomatonDialogManager(CascadableDialogManager):
         self.remember_new_state(self.initial_state, user_object)
         return self.initial_state, user_object
 
+    def get_intent_scores(self, context: Context) -> Counter:
+        scores = self.matcher.aggregate_scores(context.message_text)
+        scores.update(self.regex_matcher.aggregate_scores(context.message_text))
+        if context.yandex and context.yandex.request.nlu:
+            for intent in context.yandex.request.nlu.intents:
+                scores[intent] = 1
+        return scores
+
     def do_transition(self, prev_state: State, context: Context) -> Tuple[Optional[str], Optional[dict]]:
         if context.message_text:
-            scores = self.matcher.aggregate_scores(context.message_text)
-            scores.update(self.regex_matcher.aggregate_scores(context.message_text))
+            scores = self.get_intent_scores(context=context)
             next_state_name, match_score = None, None
             # todo: реализовать сортировку в любом порядке: скор, номер перехода, приоритет
             for intent_name, score in scores.most_common():

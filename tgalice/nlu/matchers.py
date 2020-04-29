@@ -62,7 +62,7 @@ class BaseMatcher:
         """ Return the list of matching scores and their corresponding labels """
         raise NotImplementedError()
 
-    def aggregate_scores(self, text: str, use_threshold=True):
+    def aggregate_scores(self, text: str, use_threshold=True) -> Counter:
         """ Return a dict with the highest matching score for each label. """
         result = Counter()
         scores, labels = self.get_scores(text)

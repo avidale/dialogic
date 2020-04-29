@@ -11,7 +11,7 @@ from flask import Flask, request
 from pymessenger.bot import Bot as FacebookBot
 
 from tgalice.interfaces.vk import VKBot, VKMessage
-from tgalice.interfaces.dialog_connector import DialogConnector, SOURCES
+from tgalice.dialog_connector import DialogConnector, SOURCES
 
 
 logger = logging.getLogger(__name__)

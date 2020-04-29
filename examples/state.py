@@ -43,7 +43,7 @@ class ExampleDialogManager(tgalice.dialog_manager.BaseDialogManager):
 
 
 if __name__ == '__main__':
-    connector = tgalice.interfaces.dialog_connector.DialogConnector(
+    connector = tgalice.dialog_connector.DialogConnector(
         dialog_manager=ExampleDialogManager(),
         storage=tgalice.storage.session_storage.BaseStorage(),
         log_storage=tgalice.storage.message_logging.MongoMessageLogger()

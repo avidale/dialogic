@@ -1,1 +1,1 @@
-from . import dialog_connector, vk
+from . import vk, yandex

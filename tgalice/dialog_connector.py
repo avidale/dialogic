@@ -6,6 +6,8 @@ from tgalice.storage.session_storage import BaseStorage
 from tgalice.dialog_manager.base import Response, Context
 from tgalice.dialog.names import COMMANDS, SOURCES
 
+from tgalice.interfaces.yandex import YandexResponse
+
 
 class DialogConnector:
     """ This class provides unified interface for both Telegram and Alice applications """
@@ -13,12 +15,14 @@ class DialogConnector:
             self, dialog_manager,
             storage=None, log_storage=None,
             default_source=SOURCES.TELEGRAM, tg_suggests_cols=1,
+            alice_native_state=False,
     ):
         self.dialog_manager = dialog_manager
         self.default_source = default_source
         self.storage = storage or BaseStorage()
         self.log_storage = log_storage  # noqa
         self.tg_suggests_cols = tg_suggests_cols
+        self.alice_native_state = alice_native_state
 
     def respond(self, message, source=None):
         # todo: support different triggers - not only messages, but calendar events as well
@@ -28,7 +32,10 @@ class DialogConnector:
 
         response = self.dialog_manager.respond(context)
         if response.updated_user_object is not None and response.updated_user_object != context.user_object:
-            self.set_user_object(context.user_id, response.updated_user_object)
+            if source == SOURCES.ALICE and self.alice_native_state:
+                pass  # user object is added right to the response
+            else:
+                self.set_user_object(context.user_id, response.updated_user_object)
 
         result = self.standardize_output(source, message, response)
         if self.log_storage is not None:
@@ -39,7 +46,10 @@ class DialogConnector:
         if source is None:
             source = self.default_source
         context = Context.from_raw(source=source, message=message)
-        user_object = self.get_user_object(context.user_id)
+        if source == SOURCES.ALICE and self.alice_native_state:
+            user_object = message.get('state')
+        else:
+            user_object = self.get_user_object(context.user_id)
         context.add_user_object(user_object)
         return context
 
@@ -98,8 +108,16 @@ class DialogConnector:
                     "text": response.text
                 }
             }
+            if self.alice_native_state and response.updated_user_object:
+                if 'session' in response.updated_user_object:
+                    result['session_state'] = response.updated_user_object['session']
+                if 'user' in response.updated_user_object:
+                    result['user_state_update'] = response.updated_user_object['user']
             if response.raw_response is not None:
-                result['response'] = response.raw_response
+                if isinstance(response.raw_response, YandexResponse):
+                    result = response.raw_response.to_dict()
+                else:
+                    result['response'] = response.raw_response
                 return result
             if response.voice is not None and response.voice != response.text:
                 result['response']['tts'] = response.voice

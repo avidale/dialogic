@@ -33,7 +33,7 @@ class ExampleMediaDialogManager(tgalice.dialog_manager.BaseDialogManager):
 
 
 if __name__ == '__main__':
-    connector = tgalice.interfaces.dialog_connector.DialogConnector(
+    connector = tgalice.dialog_connector.DialogConnector(
         dialog_manager=ExampleMediaDialogManager(),
         storage=tgalice.storage.session_storage.BaseStorage()
     )

@@ -1,13 +1,20 @@
 import copy
+import logging
 import uuid
 
+from typing import Optional
+
 from .names import REQUEST_TYPES, SOURCES
+from tgalice.interfaces.yandex import YandexRequest
+
+
+logger = logging.getLogger(__name__)
 
 
 class Context:
     def __init__(
             self, user_object, message_text, metadata, request_id=None, user_id=None, source=None, raw_message=None,
-            request_type=REQUEST_TYPES.SIMPLE_UTTERANCE, payload=None
+            request_type=REQUEST_TYPES.SIMPLE_UTTERANCE, payload=None, yandex=None,
     ):
         self._user_object = copy.deepcopy(user_object)
         self.message_text = message_text
@@ -18,6 +25,7 @@ class Context:
         self.raw_message = raw_message
         self.request_type = request_type
         self.payload = payload
+        self.yandex: Optional[YandexRequest] = yandex
 
     @property
     def user_object(self):
@@ -58,11 +66,15 @@ class Context:
             metadata=metadata,
             user_id=user_id,
             source=source,
-            raw_message=message
+            raw_message=message,
         )
         if source == SOURCES.ALICE:
             ctx.request_type = message['request'].get('type', REQUEST_TYPES.SIMPLE_UTTERANCE)
             ctx.payload = message['request'].get('payload', {})
+            try:
+                ctx.yandex = YandexRequest.from_dict(message)
+            except Exception as e:
+                logger.warning('Could not deserialize Yandex request: got exception "{}".'.format(e))
         elif source == SOURCES.FACEBOOK:
             if not message.get('message', {}).get('text', ''):
                 payload = message.get('postback', {}).get('payload')

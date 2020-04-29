@@ -1,6 +1,6 @@
 import pytest
 
-from tgalice.interfaces.dialog_connector import DialogConnector, SOURCES
+from tgalice.dialog_connector import DialogConnector, SOURCES
 from tgalice.dialog_manager import BaseDialogManager, Response
 
 
@@ -66,3 +66,36 @@ def test_user_objects():
     connector.set_user_object('user_1', {'name': 'alex'})
     assert connector.get_user_object('user_2') == {}
     assert connector.get_user_object('user_1') == {'name': 'alex'}
+
+
+def test_save_user_object_by_yandex(alice_message):
+    connector = DialogConnector(Repeater(), alice_native_state=True)
+    uo = {
+        'session': {'count': 1},
+        'user': {'name': 'Alex'}
+    }
+    response = Response(text='привет', user_object=uo)
+    output = connector.standardize_output(source=SOURCES.ALICE, original_message=alice_message, response=response)
+    assert output['session_state'] == {'count': 1}
+    assert output['user_state_update'] == {'name': 'Alex'}
+
+
+def test_load_user_object_by_yandex(alice_message):
+    connector = DialogConnector(Repeater(), alice_native_state=True)
+    alice_message['state'] = {
+        'session': {
+            'value': 10
+        },
+        'user': {
+            'value': 42,
+        }
+    }
+    ctx = connector.make_context(message=alice_message, source=SOURCES.ALICE)
+    assert ctx.user_object == {
+        'session': {
+            'value': 10
+        },
+        'user': {
+            'value': 42,
+        }
+    }
