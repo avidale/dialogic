@@ -7,7 +7,8 @@ class Response:
                  image_id=None, image_url=None, sound_url=None,
                  gallery=None, image=None,
                  user_object=None, raw_response=None,
-                 confidence=0.5, label=None
+                 confidence=0.5, label=None,
+                 rich_text=None,
                  ):
         self.text = text
         self.suggests = suggests or []
@@ -25,20 +26,26 @@ class Response:
         assert self.image is None or isinstance(self.image, controls.BigImage)
         self.raw_response = raw_response
         self.label = label
+        if rich_text:
+            self.set_text(rich_text)
 
     @property
     def user_object(self):
         # make it readonly, for clarity
         return self.updated_user_object
 
-    def set_text(self, text_and_voice):
+    def set_rich_text(self, rich_text):
         parser = reply_markup.TTSParser()
         try:
-            parser.feed(text_and_voice)
+            parser.feed(rich_text)
         except ValueError as e:
-            raise ValueError('Got error "{}" while parsing text "{}"'.format(e, text_and_voice))
+            raise ValueError('Got error "{}" while parsing text "{}"'.format(e, rich_text))
         parser.close()
         self.text = parser.get_text()
         self.voice = parser.get_voice()
         self.links.extend(parser.get_links())
         return self
+
+    def set_text(self, text_and_voice):
+        # this method name is deprecated
+        return self.set_rich_text(rich_text=text_and_voice)
