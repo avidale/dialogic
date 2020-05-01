@@ -2,20 +2,25 @@ import telebot
 
 import tgalice.utils
 
+from typing import Optional
+
 from tgalice.storage.session_storage import BaseStorage
 from tgalice.dialog_manager.base import Response, Context
 from tgalice.dialog.names import COMMANDS, SOURCES
-
 from tgalice.interfaces.yandex import YandexResponse
+from tgalice.utils.content_manager import YandexImageAPI
 
 
 class DialogConnector:
     """ This class provides unified interface for both Telegram and Alice applications """
     def __init__(
             self, dialog_manager,
-            storage=None, log_storage=None,
-            default_source=SOURCES.TELEGRAM, tg_suggests_cols=1,
+            storage=None,
+            log_storage=None,
+            default_source=SOURCES.TELEGRAM,
+            tg_suggests_cols=1,
             alice_native_state=False,
+            image_manager: Optional[YandexImageAPI] = None,
     ):
         self.dialog_manager = dialog_manager
         self.default_source = default_source
@@ -23,6 +28,7 @@ class DialogConnector:
         self.log_storage = log_storage  # noqa
         self.tg_suggests_cols = tg_suggests_cols
         self.alice_native_state = alice_native_state
+        self.image_manager = image_manager
 
     def respond(self, message, source=None):
         # todo: support different triggers - not only messages, but calendar events as well
@@ -102,7 +108,6 @@ class DialogConnector:
         elif source == SOURCES.ALICE:
             result = {
                 "version": original_message['version'],
-                "session": original_message['session'],
                 "response": {
                     "end_session": has_exit_command,
                     "text": response.text
@@ -138,6 +143,14 @@ class DialogConnector:
                     'image_id': response.image_id,
                     'description': response.text
                 }
+            elif response.image_url and self.image_manager:
+                image_id = self.image_manager.get_image_id_by_url(response.image_url)
+                if image_id:
+                    result['response']['card'] = {
+                        'type': 'BigImage',
+                        'image_id': image_id,
+                        'description': response.text
+                    }
             if response.gallery is not None:
                 result['response']['card'] = response.gallery.to_dict()
             if response.image is not None:
