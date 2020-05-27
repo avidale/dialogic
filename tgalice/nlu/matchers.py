@@ -99,10 +99,10 @@ class MaxMatcher(AggregationMatcher):
         label2matchers2scores = self._apply_matchers(text)
         labels = []
         scores = []
-        for l, ldict in label2matchers2scores.items():
+        for label, ldict in label2matchers2scores.items():
             if not ldict:
                 continue
-            labels.append(l)
+            labels.append(label)
             scores.append(max(ldict.values()))
         return scores, labels
 
@@ -121,9 +121,9 @@ class WeightedAverageMatcher(AggregationMatcher):
         label2matchers2scores = self._apply_matchers(text)
         labels = []
         scores = []
-        for l, ldict in label2matchers2scores.items():
+        for label, ldict in label2matchers2scores.items():
             score = sum(w * ldict[i] for i, w in enumerate(self.weights))
-            labels.append(l)
+            labels.append(label)
             scores.append(score)
         return scores, labels
 
@@ -433,7 +433,7 @@ def make_matcher(key, **kwargs):
 register_matcher('exact', lambda **kwargs: ExactMatcher(**kwargs))
 register_matcher('levenshtein', lambda **kwargs: TextDistanceMatcher(by_words=False, metric='levenshtein', **kwargs))
 register_matcher('cosine', lambda **kwargs: TextDistanceMatcher(by_words=True, metric='cosine', **kwargs))
-register_matcher('tf-id', lambda **kwargs: TFIDFMatcher(**kwargs))
+register_matcher('tf-idf', lambda **kwargs: TFIDFMatcher(**kwargs))
 register_matcher('simple_text', lambda weights=(0.5, 0.5), **kwargs: WeightedAverageMatcher([
     TextDistanceMatcher(by_words=False, metric='levenshtein'),
     TextDistanceMatcher(by_words=True, metric='cosine'),

@@ -5,7 +5,7 @@ from datetime import datetime
 
 from tgalice.dialog import Context, Response
 from tgalice.dialog.names import SOURCES
-from tgalice.storage.database_utils import get_mongo_or_mock
+from tgalice.storage.database_utils import get_mongo_or_mock, replace_dotted_keys
 
 
 try:
@@ -39,7 +39,7 @@ class LoggedMessage:
         """
 
     def save_to_mongo(self, collection):
-        collection.insert_one(self.to_dict())
+        collection.insert_one(replace_dotted_keys(self.to_dict()))
 
     def to_dict(self):
         result = {
@@ -146,4 +146,4 @@ class MongoMessageLogger(BaseMessageLogger):
             self.collection = database.get_collection(collection_name, write_concern=write_concern)
 
     def save_a_message(self, message_dict):
-        self.collection.insert_one(message_dict)
+        self.collection.insert_one(replace_dotted_keys(message_dict))
