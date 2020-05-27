@@ -49,7 +49,13 @@ class Context:
             user_id = source + '__' + str(message.user_id)
             message_text = message.text
         elif source == SOURCES.ALICE:
-            user_id = source + '__' + message['session']['user_id']
+            sess = message['session']
+            if sess.get('user', {}).get('user_id'):
+                # the new user_id, which is persistent across applications
+                user_id = source + '_auth__' + sess['user']['user_id']
+            else:
+                # the old user id, that changes across applications
+                user_id = source + '__' + sess['user_id']
             message_text = message['request'].get('command', '')
             metadata['new_session'] = message.get('session', {}).get('new', False)
         elif source == SOURCES.FACEBOOK:
