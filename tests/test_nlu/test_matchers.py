@@ -149,3 +149,12 @@ def test_regex_matcher():
     assert matcher.aggregate_scores('привет мир') == {}
     assert matcher.aggregate_scores('расскажи время') == {'get_time': 1}
     assert matcher.aggregate_scores('привет расскажи время') == {'get_time': 1}
+
+
+def test_joint_matcher_with_regex():
+    intents = {
+        'a': {'examples': ['an a'], 'regexp': 'a+'}
+    }
+    jm = matchers.make_matcher_with_regex(base_matcher=matchers.ExactMatcher(), intents=intents)
+    assert jm.aggregate_scores('an a') == {'a': 1}
+    assert jm.aggregate_scores('aaaa') == {'a': 1}
