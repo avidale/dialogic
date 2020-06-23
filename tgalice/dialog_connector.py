@@ -14,7 +14,8 @@ from tgalice.utils.content_manager import YandexImageAPI
 class DialogConnector:
     """ This class provides unified interface for both Telegram and Alice applications """
     def __init__(
-            self, dialog_manager,
+            self,
+            dialog_manager,
             storage=None,
             log_storage=None,
             default_source=SOURCES.TELEGRAM,
@@ -22,6 +23,10 @@ class DialogConnector:
             alice_native_state=False,
             image_manager: Optional[YandexImageAPI] = None,
     ):
+        """
+        paramaters:
+        - alice_native_state: bool or 'user' or 'state'
+        """
         self.dialog_manager = dialog_manager
         self.default_source = default_source
         self.storage = storage or BaseStorage()
@@ -53,7 +58,12 @@ class DialogConnector:
             source = self.default_source
         context = Context.from_raw(source=source, message=message)
         if source == SOURCES.ALICE and self.alice_native_state:
-            user_object = message.get('state')
+            if self.alice_native_state == 'session':
+                user_object = message.get('state', {}).get('session')
+            elif self.alice_native_state == 'user':
+                user_object = message.get('state', {}).get('user')
+            else:
+                user_object = message.get('state')
         else:
             user_object = self.get_user_object(context.user_id)
         context.add_user_object(user_object)
@@ -114,10 +124,15 @@ class DialogConnector:
                 }
             }
             if self.alice_native_state and response.updated_user_object:
-                if 'session' in response.updated_user_object:
-                    result['session_state'] = response.updated_user_object['session']
-                if 'user' in response.updated_user_object:
-                    result['user_state_update'] = response.updated_user_object['user']
+                if self.alice_native_state == 'session':
+                    result['session_state'] = response.updated_user_object
+                elif self.alice_native_state == 'user':
+                    result['user_state_update'] = response.updated_user_object
+                else:
+                    if 'session' in response.updated_user_object:
+                        result['session_state'] = response.updated_user_object['session']
+                    if 'user' in response.updated_user_object:
+                        result['user_state_update'] = response.updated_user_object['user']
             if response.raw_response is not None:
                 if isinstance(response.raw_response, YandexResponse):
                     result = response.raw_response.to_dict()

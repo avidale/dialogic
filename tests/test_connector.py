@@ -80,8 +80,33 @@ def test_save_user_object_by_yandex(alice_message):
     assert output['user_state_update'] == {'name': 'Alex'}
 
 
-def test_load_user_object_by_yandex(alice_message):
-    connector = DialogConnector(Repeater(), alice_native_state=True)
+def test_save_user_object_by_yandex_to_session(alice_message):
+    connector = DialogConnector(Repeater(), alice_native_state='session')
+    uo = {'count': 1, 'name': 'Alex'}
+    response = Response(text='привет', user_object=uo)
+    output = connector.standardize_output(source=SOURCES.ALICE, original_message=alice_message, response=response)
+    assert output['session_state'] == {'count': 1, 'name': 'Alex'}
+
+
+def test_save_user_object_by_yandex_to_user(alice_message):
+    connector = DialogConnector(Repeater(), alice_native_state='user')
+    uo = {'count': 1, 'name': 'Alex'}
+    response = Response(text='привет', user_object=uo)
+    output = connector.standardize_output(source=SOURCES.ALICE, original_message=alice_message, response=response)
+    assert output['user_state_update'] == {'count': 1, 'name': 'Alex'}
+
+
+@pytest.mark.parametrize('ans,uo', [
+    (True, {
+        'session': {'value': 10},
+        'user': {'value': 42}
+    }),
+    ('session', {'value': 10}),
+    ('user', {'value': 42}),
+    (False, {}),
+])
+def test_load_user_object_by_yandex(ans, uo, alice_message):
+    connector = DialogConnector(Repeater(), alice_native_state=ans)
     alice_message['state'] = {
         'session': {
             'value': 10
@@ -91,11 +116,4 @@ def test_load_user_object_by_yandex(alice_message):
         }
     }
     ctx = connector.make_context(message=alice_message, source=SOURCES.ALICE)
-    assert ctx.user_object == {
-        'session': {
-            'value': 10
-        },
-        'user': {
-            'value': 42,
-        }
-    }
+    assert ctx.user_object == uo

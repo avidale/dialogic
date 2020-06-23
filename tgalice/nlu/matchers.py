@@ -419,6 +419,31 @@ class WMDMatcher(PairwiseMatcher):
         return similarity
 
 
+def make_matcher_with_regex(base_matcher: BaseMatcher, intents):
+    """ Create a mix of the given matcher and a regex matcher """
+    labels = []
+    texts = []
+    re_labels = []
+    re_texts = []
+    for intent_name, intent in intents.items():
+        if 'regexp' in intent:
+            exps = intent['regexp']
+            if not isinstance(exps, list):
+                exps = [exps]
+            for exp in exps:
+                re_labels.append(intent_name)
+                re_texts.append(exp)
+        if 'examples' in intent:
+            for ex in intent['examples']:
+                labels.append(intent_name)
+                texts.append(ex)
+    base_matcher.fit(texts, labels)
+    re_matcher = RegexMatcher()
+    re_matcher.fit(re_texts, re_labels)
+    return MaxMatcher([base_matcher, re_matcher])
+
+
+
 _matchers = dict()
 
 
