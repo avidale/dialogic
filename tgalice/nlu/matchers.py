@@ -443,7 +443,6 @@ def make_matcher_with_regex(base_matcher: BaseMatcher, intents):
     return MaxMatcher([base_matcher, re_matcher])
 
 
-
 _matchers = dict()
 
 
