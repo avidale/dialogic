@@ -1,6 +1,4 @@
-import json
-import requests
-from unittest.mock import Mock, patch, MagicMock
+from unittest.mock import patch, MagicMock
 
 from tgalice.interfaces.vk import VKBot, VKMessage
 

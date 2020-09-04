@@ -68,7 +68,7 @@ class YandexImageAPI:
         results = r.json().get('images', [])
         return [Image(**item) for item in results]
 
-    def get_image_id_by_url(self, url, try_upload=None, timeout=2) -> Optional[str]:
+    def get_image_id_by_url(self, url, try_upload=None, timeout=2, default=None) -> Optional[str]:
         """
         Try to get image id from local storage or quickly upload it
         or return the default image.
@@ -81,6 +81,8 @@ class YandexImageAPI:
             image = self.add_image(url, timeout=timeout)
             if image:
                 return image.id
+        if default:
+            return default
         if self.default_image_id:
             return self.default_image_id
 

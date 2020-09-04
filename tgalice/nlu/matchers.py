@@ -28,16 +28,21 @@ except ImportError:
 EPSILON = 1e-10
 
 
+class TextNormalization:
+    FAST = 'fast'
+    FAST_LEMMATIZE = 'fast_lemmatize'
+
+
 class BaseMatcher:
     """ A base class for text classification with confidence """
-    def __init__(self, threshold=0.5, thresholds=None):
+    def __init__(self, threshold: float = 0.5, thresholds=None):
         """ Create a base matcher
         parameters:
         - threshold: the minimal allowed similarity between the text and the example for a successful match
         - thresholds: an optional dict of label-wise thresholds
         """
-        self.threshold = threshold
-        self.thresholds = thresholds or {}
+        self.threshold: float = threshold
+        self.thresholds: dict = thresholds or {}
 
     def fit(self, texts, labels):
         raise NotImplementedError()
@@ -82,6 +87,15 @@ class AggregationMatcher(BaseMatcher):
         for m in self.matchers:
             m.fit(texts, labels)
 
+    def get_scores(self, text: str) -> typing.Tuple[typing.List[float], typing.List]:
+        scores = []
+        labels = []
+        for m in self.matchers:
+            sc, lbl = m.get_scores(text)
+            scores.extend(sc)
+            labels.extend(lbl)
+        return scores, labels
+
     def _apply_matchers(self, text, use_threshold=False):
         label2matchers2scores = defaultdict(lambda: defaultdict(lambda: -math.inf))
         for i, m in enumerate(self.matchers):
@@ -111,7 +125,7 @@ class WeightedAverageMatcher(AggregationMatcher):
     def __init__(self, matchers, weights=None, **kwargs):
         super(WeightedAverageMatcher, self).__init__(matchers, **kwargs)
         if weights is None:
-            weights = [1.0 for m in self.matchers]
+            weights = [1.0] * len(self.matchers)
         else:
             assert len(weights) == len(matchers), 'matchers and weights should have the same size'
         total_weight = float(sum(weights))
@@ -148,21 +162,25 @@ class RegexMatcher(BaseMatcher):
     if the text matches one of the provided expressions for the label, and 0 otherwise.
     The parameter `add_end` forcibly wraps each expression between `^` and `$` symbols, disabling partial prefix match.
     """
-    def __init__(self, *args, add_end=True, **kwargs):
+    def __init__(self, *args, add_end=True, merge=True, **kwargs):
         super(RegexMatcher, self).__init__(*args, **kwargs)
         self.add_end = add_end
-        self.expressions = {}
+        self.merge = merge
+        self.expressions = []
+        self.labels = []
 
     def fit(self, texts, labels):
         parts = defaultdict(list)
         for text, label in zip(texts, labels):
             parts[label].append(text)
-        self.expressions = {
-            label: re.compile('(?:{})'.format('|'.join([self._wrap(e) for e in expressions])))
-            for label, expressions in parts.items()
-        }
         for label, expressions in parts.items():
-            print(label, '(?:{})'.format('|'.join([self._wrap(e) for e in expressions])))
+            if self.merge:
+                self.expressions.append(re.compile('(?:{})'.format('|'.join([self._wrap(e) for e in expressions]))))
+                self.labels.append(label)
+            else:
+                for e in expressions:
+                    self.expressions.append(re.compile('(?:{})'.format(self._wrap(e))))
+                    self.labels.append(label)
 
     def _wrap(self, text):
         if self.add_end:
@@ -172,7 +190,7 @@ class RegexMatcher(BaseMatcher):
     def get_scores(self, text):
         scores = []
         labels = []
-        for label, expression in self.expressions.items():
+        for label, expression in zip(self.labels, self.expressions):
             labels.append(label)
             scores.append(float(bool(re.match(expression, text))))
         return scores, labels
@@ -192,10 +210,10 @@ class PairwiseMatcher(BaseMatcher):
     stopwords: iterable or mapping
         Lists the words that should be discarded (if it is a list) or paid less attention
         (if it is a dict with values in (0, 1) during matching. It may not be supported by all descendant matchers.
-    kwargs: dict
+    kwargs:
         Passed to the parent constructor (BaseMatcher)
     """
-    def __init__(self, text_normalization='fast', stopwords=None, **kwargs):
+    def __init__(self, text_normalization=TextNormalization.FAST, stopwords=None, **kwargs):
         super(PairwiseMatcher, self).__init__(**kwargs)
         self.text_normalization = text_normalization
         self._texts = []
@@ -210,9 +228,9 @@ class PairwiseMatcher(BaseMatcher):
         self.stopwords = stopwords
 
     def preprocess(self, text):
-        if self.text_normalization == 'fast':
+        if self.text_normalization == TextNormalization.FAST:
             text = basic_nlu.fast_normalize(text, lemmatize=False)
-        if self.text_normalization == 'fast_lemmatize':
+        if self.text_normalization == TextNormalization.FAST_LEMMATIZE:
             text = basic_nlu.fast_normalize(text, lemmatize=True)
         elif isinstance(self.text_normalization, Callable):
             text = self.text_normalization(text)
@@ -305,7 +323,8 @@ class TFIDFMatcher(PairwiseMatcher):
         words = ['BOS'] + words + ['EOS']
         return words + ['_'.join(words[i:(i + self.ngram)]) for i in range(len(words) - self.ngram + 1)]
 
-    def _dot(self, one, another):
+    @staticmethod
+    def _dot(one, another):
         return sum(v * another.get(k, 0) for k, v in one.items())
 
     def _norm(self, one):
@@ -384,7 +403,8 @@ class WMDMatcher(PairwiseMatcher):
         weights = []
         return WMDDocument(text, valid_tokens, vecs, weights)
 
-    def text2bow(self, tokens, word2idx):
+    @staticmethod
+    def text2bow(tokens, word2idx):
         bow = np.zeros(len(word2idx), dtype=np.double)
         n = len(tokens)
         for t in tokens:
@@ -419,7 +439,7 @@ class WMDMatcher(PairwiseMatcher):
         return similarity
 
 
-def make_matcher_with_regex(base_matcher: BaseMatcher, intents):
+def make_matcher_with_regex(base_matcher: BaseMatcher, intents, merge=True):
     """ Create a mix of the given matcher and a regex matcher """
     labels = []
     texts = []
@@ -438,7 +458,7 @@ def make_matcher_with_regex(base_matcher: BaseMatcher, intents):
                 labels.append(intent_name)
                 texts.append(ex)
     base_matcher.fit(texts, labels)
-    re_matcher = RegexMatcher()
+    re_matcher = RegexMatcher(merge=merge)
     re_matcher.fit(re_texts, re_labels)
     return MaxMatcher([base_matcher, re_matcher])
 

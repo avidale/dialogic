@@ -88,6 +88,8 @@ class LoggedMessage:
                 data['reply_markup'] = data['reply_markup'].to_json()
         if context.request_id is not None:
             kwargs['request_id'] = context.request_id
+        if response.label:
+            kwargs['label'] = response.label
         return cls(
             text=response.text,
             user_id=context.user_id,

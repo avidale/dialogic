@@ -8,6 +8,7 @@ Automaton dialog manager is based on several concepts:
 """
 import attr
 import copy
+import logging
 
 from collections import Counter, defaultdict, OrderedDict
 from collections.abc import Mapping
@@ -20,6 +21,8 @@ from tgalice.utils.configuration import load_config
 
 from tgalice.dialog_manager.base import CascadableDialogManager
 
+
+logger = logging.getLogger(__name__)
 
 ANY_STATE = 'universal_state'
 
@@ -260,10 +263,12 @@ class AutomatonDialogManager(CascadableDialogManager):
 
     def try_to_respond(self, ctx: Context) -> Optional[Response]:
         prev_state = self.extract_prev_state(ctx)
+        logger.debug('Prev state is ', prev_state)
         if prev_state is None:
             new_state_name, updated_user_object = self.initialize(ctx)
         else:
             new_state_name, updated_user_object = self.do_transition(prev_state, ctx)
+        logger.debug('New state is ', new_state_name)
         if new_state_name is None:
             # todo: maybe do some default action
             pass
@@ -297,6 +302,7 @@ class AutomatonDialogManager(CascadableDialogManager):
             # todo: реализовать сортировку в любом порядке: скор, номер перехода, приоритет
             for intent_name, score in scores.most_common():
                 next_state_name = self.find_transition_by_intent(intent_name, prev_state)
+                logger.debug('valid transition to {} with intent {}'.format(next_state_name, intent_name))
             if next_state_name is None:
                 # the transitions-without-text have lower priority than any text (not sure)
                 next_state_name = self.find_transition_by_intent(None, prev_state)

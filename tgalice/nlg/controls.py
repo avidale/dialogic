@@ -137,13 +137,15 @@ class Gallery:
             assert len(self.title) <= 64, 'Gallery header text cannot be longer than 64 symbols'
         if not isinstance(items, Iterable):
             raise ValueError('Gallery items should be an Iterable, got {}'.format(type(items)))
+        if items is None:
+            items = []
         if len(items) < 1 or len(items) > 5:
             raise ValueError('Gallery should contain 1-5 items, got {}'.format(len(items)))
         self.items = items
         if footer is not None:
             assert isinstance(footer, GalleryFooter)
             # todo: make footer create-able from config
-            self.footer = footer
+        self.footer = footer
 
     def to_dict(self):
         result = OrderedDict()

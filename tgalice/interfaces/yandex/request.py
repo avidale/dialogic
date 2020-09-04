@@ -23,6 +23,14 @@ class Meta(Serializeable):
     client_id: str = attr.ib()
     interfaces: dict = attr.ib(factory=dict)
 
+    @property
+    def has_screen(self) -> bool:
+        return self.interfaces and 'screen' in self.interfaces
+
+    @property
+    def has_account_linking(self) -> bool:
+        return self.interfaces and 'account_linking' in self.interfaces
+
 
 @attr.s
 class Span(Serializeable):
@@ -48,12 +56,24 @@ class Slot(Serializeable):
 class Intent(Serializeable):
     slots: Dict[str, Slot] = attr.ib(converter=dict_converter(Slot))
 
+    def get_form(self) -> Dict[str, str]:
+        return {
+            slot_name: slot.value
+            for slot_name, slot in self.slots.items()
+        }
+
 
 @attr.s
 class NLU(Serializeable):
     tokens: List[str] = attr.ib(factory=list)
     entities: List[Entity] = attr.ib(converter=list_converter(Entity), factory=list)
     intents: Dict[str, Intent] = attr.ib(converter=dict_converter(Intent), factory=dict)
+
+    def get_forms(self) -> Dict[str, Dict[str, str]]:
+        return {
+            intent_name: intent.get_form()
+            for intent_name, intent in self.intents.items()
+        }
 
 
 @attr.s
