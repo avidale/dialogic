@@ -1,1 +1,1 @@
-from . import basic_nlu, matchers
+from . import basic_nlu, matchers, regex_expander

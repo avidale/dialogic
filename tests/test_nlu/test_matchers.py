@@ -31,7 +31,7 @@ def test_jaccard_matcher():
 def test_tfidf_matcher():
     new_texts = ['добрый день', 'доброй ночи', 'добрый вечер', 'доброе утро', 'животное хомяк', 'животное пингвин']
     new_labels = ['hello', 'hello', 'hello', 'hello', 'animal', 'animal']
-    matcher = matchers.TFIDFMatcher(threshold=0.3, text_normalization='fast_lemmatize')
+    matcher = matchers.TFIDFMatcher(threshold=0.25, text_normalization=matchers.TextNormalization.FAST_LEMMATIZE)
     matcher.fit(new_texts, new_labels)
     assert matcher.match('добрый день') == ('hello', 1)
     assert matcher.match('добрый упоротыш') == NO_MATCH

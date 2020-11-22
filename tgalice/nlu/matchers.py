@@ -6,9 +6,14 @@ import typing
 from collections import Counter, defaultdict
 from collections.abc import Callable, Iterable, Mapping
 from itertools import chain
+from types import ModuleType
 
 from ..nlu import basic_nlu
 
+try:
+    import regex
+except ImportError:
+    regex = None
 
 try:
     from pyemd import emd
@@ -162,12 +167,21 @@ class RegexMatcher(BaseMatcher):
     if the text matches one of the provided expressions for the label, and 0 otherwise.
     The parameter `add_end` forcibly wraps each expression between `^` and `$` symbols, disabling partial prefix match.
     """
-    def __init__(self, *args, add_end=True, merge=True, **kwargs):
+    def __init__(self, *args, add_end=True, merge=True, engine='re', **kwargs):
         super(RegexMatcher, self).__init__(*args, **kwargs)
         self.add_end = add_end
         self.merge = merge
         self.expressions = []
         self.labels = []
+        self.engine = engine
+
+    @property
+    def re(self):
+        if self.engine == 'regex' and regex is not None:
+            return regex
+        elif isinstance(self.engine, ModuleType):
+            return self.engine
+        return re
 
     def fit(self, texts, labels):
         parts = defaultdict(list)
@@ -175,11 +189,15 @@ class RegexMatcher(BaseMatcher):
             parts[label].append(text)
         for label, expressions in parts.items():
             if self.merge:
-                self.expressions.append(re.compile('(?:{})'.format('|'.join([self._wrap(e) for e in expressions]))))
+                self.expressions.append(
+                    self.re.compile('(?:{})'.format(
+                        '|'.join([self._wrap(e) for e in expressions])
+                    ))
+                )
                 self.labels.append(label)
             else:
                 for e in expressions:
-                    self.expressions.append(re.compile('(?:{})'.format(self._wrap(e))))
+                    self.expressions.append(self.re.compile('(?:{})'.format(self._wrap(e))))
                     self.labels.append(label)
 
     def _wrap(self, text):
@@ -192,7 +210,7 @@ class RegexMatcher(BaseMatcher):
         labels = []
         for label, expression in zip(self.labels, self.expressions):
             labels.append(label)
-            scores.append(float(bool(re.match(expression, text))))
+            scores.append(float(bool(self.re.match(expression, text))))
         return scores, labels
 
 
@@ -299,7 +317,7 @@ class TFIDFMatcher(PairwiseMatcher):
         self.vocab = Counter()
 
     def fit(self, texts, labels):
-        self.vocab = Counter(w for t in texts for w in self._tokenize(t))
+        self.vocab = Counter(w for t in texts for w in self._tokenize(super(TFIDFMatcher, self).preprocess(t)))
         return super(TFIDFMatcher, self).fit(texts, labels)
 
     def preprocess(self, text):
@@ -439,7 +457,7 @@ class WMDMatcher(PairwiseMatcher):
         return similarity
 
 
-def make_matcher_with_regex(base_matcher: BaseMatcher, intents, merge=True):
+def make_matcher_with_regex(base_matcher: BaseMatcher, intents, merge=True, re_matcher: RegexMatcher = None):
     """ Create a mix of the given matcher and a regex matcher """
     labels = []
     texts = []
@@ -458,7 +476,8 @@ def make_matcher_with_regex(base_matcher: BaseMatcher, intents, merge=True):
                 labels.append(intent_name)
                 texts.append(ex)
     base_matcher.fit(texts, labels)
-    re_matcher = RegexMatcher(merge=merge)
+    if re_matcher is None:
+        re_matcher = RegexMatcher(merge=merge)
     re_matcher.fit(re_texts, re_labels)
     return MaxMatcher([base_matcher, re_matcher])
 
