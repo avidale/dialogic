@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setuptools.setup(
     name="tgalice",
-    version="0.2.12",
+    version="0.2.13",
     author="David Dale",
     author_email="dale.david@mail.ru",
     description="Yet another common wrapper for Alice skills and Facebook/Telegram bots",
@@ -27,7 +27,7 @@ setuptools.setup(
         'pymorphy2',
         'pyTelegramBotAPI',
         'pyyaml',
-        'requests',  # it is needed by other packages, and somehow it is installed wrongly
+        'requests',
         'textdistance',
     ],
     extras_require={
