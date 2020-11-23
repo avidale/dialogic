@@ -1,7 +1,8 @@
 import json
 import sys
 
-from collections import Iterable, Mapping, OrderedDict
+from collections.abc import Iterable, Mapping
+from collections import OrderedDict
 
 
 def make_button(button=None, text=None, url=None, payload=None):

@@ -1,7 +1,7 @@
 import random
 import yaml
 
-from collections import Iterable
+from collections.abc import Iterable
 
 from ..nlu import basic_nlu
 from ..nlu.matchers import make_matcher

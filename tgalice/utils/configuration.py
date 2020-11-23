@@ -1,7 +1,7 @@
 import json
 import yaml
 
-from collections import Iterable, Mapping
+from collections.abc import Iterable, Mapping
 
 
 def load_config(config, accept_lists=False, accept_dicts=True):
