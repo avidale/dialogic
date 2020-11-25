@@ -108,3 +108,21 @@ class DialogTurn:
             self.response_text = ''
         else:
             self.response_text += '\n'
+
+    def make_response(self) -> Optional[Response]:
+        if self.response:
+            return self.response
+        if self.response_text:
+            r = Response(
+                text=None,
+                user_object=self.user_object,
+                rich_text=self.response_text,
+                suggests=self.suggests,
+                commands=self.commands,
+                image_url=self.image_url,
+            )
+            if isinstance(self.card, BigImage):
+                r.image = self.card
+            elif isinstance(self.card, VisualGallery):
+                r.gallery = self.card
+            return r
