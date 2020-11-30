@@ -29,6 +29,7 @@ setuptools.setup(
         'pyyaml',
         'requests',
         'textdistance',
+        'colorama',
     ],
     extras_require={
         'rumorph': ['pymorphy2[fast]', 'pymorphy2-dicts-ru'],  # todo: move them out of main requirements

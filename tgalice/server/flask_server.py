@@ -4,6 +4,8 @@ import argparse
 import json
 import logging
 import os
+
+import colorama
 import telebot
 import warnings
 
@@ -208,12 +210,19 @@ class FlaskServer:
 
     def run_command_line(self):
         input_sentence = ''
+        colorama.init(autoreset=False)
         while True:
             response, need_to_exit = self.connector.respond(input_sentence, source=SOURCES.TEXT)
-            print(response)
+            print(colorama.Fore.BLUE + response + colorama.Style.RESET_ALL)
             if need_to_exit:
                 break
-            input_sentence = input('> ')
+            print(colorama.Fore.GREEN + '> ', end='')
+            try:
+                input_sentence = input()
+            except KeyboardInterrupt:
+                break
+            finally:
+                print(colorama.Style.RESET_ALL, end='')
 
     def parse_args_and_run(self):
         parser = argparse.ArgumentParser(description='Run the bot')
