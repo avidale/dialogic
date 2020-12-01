@@ -73,7 +73,6 @@ class Cascade:
         return wrap
 
     def __call__(self, turn: DialogTurn) -> Optional[str]:
-        # logger.debug('raw candidates: {}'.format([c.handler.__name__ for c in CASCADE]))
         if turn.is_complete:
             return None
         candidates = []
@@ -85,10 +84,6 @@ class Cascade:
             # intent scores are matched strictly and then sorted
             intent_score = -math.inf
             if item.intents:
-                # logger.debug('intent scores for {}: {}'.format(
-                #     item.handler.__name__,
-                #     [turn.intents.get(intent, -math.inf) for intent in item.intents]
-                # ))
                 intent_score = max(turn.intents.get(intent, -math.inf) for intent in item.intents)
                 if intent_score == -math.inf:
                     continue

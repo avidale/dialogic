@@ -29,8 +29,8 @@ class Context:
 
     @property
     def user_object(self):
-        # todo: make _user_object constant instead of copying it every time
-        return copy.deepcopy(self._user_object)
+        # todo: make this object explicitly frozen
+        return self._user_object
 
     def add_user_object(self, user_object):
         self._user_object = copy.deepcopy(user_object)
