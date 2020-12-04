@@ -3,6 +3,7 @@ import copy
 import json
 import os
 
+from storage.database_utils import fix_bson_keys
 from tgalice.utils import database_utils
 
 
@@ -73,6 +74,7 @@ class MongoBasedStorage(BaseStorage):
         return result.get(self.VALUE_NAME, {})
 
     def set(self, key, value):
+        value = fix_bson_keys(value)
         self._collection.update_one(
             {self.KEY_NAME: key},
             {'$set': {self.VALUE_NAME: value}},

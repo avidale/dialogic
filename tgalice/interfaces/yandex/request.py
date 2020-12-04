@@ -111,6 +111,7 @@ class Session(Serializeable):
 class State(Serializeable):
     session: Optional[Dict] = attr.ib(default=None)
     user: Optional[Dict] = attr.ib(default=None)
+    application: Optional[Dict] = attr.ib(default=None)
 
 
 @attr.s
