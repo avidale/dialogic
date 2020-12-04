@@ -3,7 +3,7 @@ import copy
 import json
 import os
 
-from storage.database_utils import fix_bson_keys
+from tgalice.storage.database_utils import fix_bson_keys
 from tgalice.utils import database_utils
 
 
