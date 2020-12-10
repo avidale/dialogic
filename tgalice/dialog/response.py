@@ -49,3 +49,10 @@ class Response:
     def set_text(self, text_and_voice):
         # this method name is deprecated
         return self.set_rich_text(rich_text=text_and_voice)
+
+    def add_link(self, title, url, hide=False):
+        self.links.append({
+            'title': title,
+            'url': url,
+            'hide': hide,
+        })

@@ -1,3 +1,5 @@
+import copy
+
 import telebot
 
 import tgalice.utils
@@ -38,11 +40,12 @@ class DialogConnector:
     def respond(self, message, source=None):
         # todo: support different triggers - not only messages, but calendar events as well
         context = self.make_context(message=message, source=source)
+        old_user_object = copy.deepcopy(context.user_object)
         if self.log_storage is not None:
             self.log_storage.log_context(context)
 
         response = self.dialog_manager.respond(context)
-        if response.updated_user_object is not None and response.updated_user_object != context.user_object:
+        if response.updated_user_object is not None and response.updated_user_object != old_user_object:
             if source == SOURCES.ALICE and self.alice_native_state:
                 pass  # user object is added right to the response
             else:

@@ -188,7 +188,7 @@ class FlaskServer:
                     self.facebook_bot.send_message(recipient_id, response)
         return "Message Processed"
 
-    def run_server(self, host="0.0.0.0", port=None, use_ngrok=False):
+    def run_server(self, host="0.0.0.0", port=None, use_ngrok=False, debug=False):
         # todo: maybe, run a foreign app instead (attach own blueprint to it)
         if port is None:
             port = int(os.environ.get('PORT', 5000))
@@ -206,7 +206,7 @@ class FlaskServer:
             self.vk_web_hook()
         else:
             logging.warning('VK bot has not been created; cannot run it')
-        self.app.run(host=host, port=port)
+        self.app.run(host=host, port=port, debug=debug)
 
     def run_command_line(self):
         input_sentence = ''
@@ -230,6 +230,7 @@ class FlaskServer:
         parser.add_argument('--poll', action='store_true', help='Run the bot locally in polling mode (Telegram or VK)')
         parser.add_argument('--ngrok', action='store_true',
                             help='Run the bot locally with ngrok tunnel into the Internet')
+        parser.add_argument('--debug', action='store_true', help='Run Flask in a debug mode')
         args = parser.parse_args()
         if args.cli:
             self.run_command_line()
@@ -241,4 +242,4 @@ class FlaskServer:
             else:
                 raise ValueError('Got no local bots to run in polling mode')
         else:
-            self.run_server(use_ngrok=args.ngrok)
+            self.run_server(use_ngrok=args.ngrok, debug=args.debug)
