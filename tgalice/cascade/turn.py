@@ -38,7 +38,7 @@ class DialogTurn:
 
     @property
     def old_user_object(self):
-        return self.ctx.user_object
+        return self.ctx.user_object or {}
 
     @property
     def is_complete(self):
