@@ -6,7 +6,7 @@ https://yandex.ru/dev/dialogs/alice/doc/protocol-docpage/#request
 
 import attr
 from typing import Dict, List, Optional
-from tgalice.utils.serialization import Serializeable, list_converter, dict_converter
+from tgalice.utils.serialization import FreeSerializeable, list_converter, dict_converter
 
 
 class ENTITY_TYPES:
@@ -17,7 +17,7 @@ class ENTITY_TYPES:
 
 
 @attr.s
-class Meta(Serializeable):
+class Meta(FreeSerializeable):
     locale: str = attr.ib()
     timezone: str = attr.ib()
     client_id: str = attr.ib()
@@ -33,27 +33,27 @@ class Meta(Serializeable):
 
 
 @attr.s
-class Span(Serializeable):
+class Span(FreeSerializeable):
     start: int = attr.ib()
     end: int = attr.ib()
 
 
 @attr.s
-class Entity(Serializeable):
+class Entity(FreeSerializeable):
     type: str = attr.ib()  # may be one of ENTITY_TYPES, but not only
     tokens: Span = attr.ib(converter=Span.from_dict)
     value = attr.ib()
 
 
 @attr.s
-class Slot(Serializeable):
+class Slot(FreeSerializeable):
     type: str = attr.ib()
     tokens: Optional[Span] = attr.ib(converter=Span.from_dict, default=None)
     value = attr.ib(default=None)
 
 
 @attr.s
-class Intent(Serializeable):
+class Intent(FreeSerializeable):
     slots: Dict[str, Slot] = attr.ib(converter=dict_converter(Slot))
 
     def get_form(self) -> Dict[str, str]:
@@ -64,7 +64,7 @@ class Intent(Serializeable):
 
 
 @attr.s
-class NLU(Serializeable):
+class NLU(FreeSerializeable):
     tokens: List[str] = attr.ib(factory=list)
     entities: List[Entity] = attr.ib(converter=list_converter(Entity), factory=list)
     intents: Dict[str, Intent] = attr.ib(converter=dict_converter(Intent), factory=dict)
@@ -77,26 +77,27 @@ class NLU(Serializeable):
 
 
 @attr.s
-class Request(Serializeable):
+class Request(FreeSerializeable):
     command: str = attr.ib(default=None)
     original_utterance: str = attr.ib(default=None)
     type: str = attr.ib(default=None)
     markup = attr.ib(factory=dict)
     payload = attr.ib(factory=dict)
     nlu: Optional[NLU] = attr.ib(converter=NLU.from_dict, default=None)
+    show_type: Optional[str] = attr.ib(default=None)
 
 
-class User:
+class User(FreeSerializeable):
     user_id: str = attr.ib(default=None)
     access_token: str = attr.ib(default=None)
 
 
-class Application:
+class Application(FreeSerializeable):
     application_id: str = attr.ib(default=None)
 
 
 @attr.s
-class Session(Serializeable):
+class Session(FreeSerializeable):
     message_id: int = attr.ib()
     session_id: str = attr.ib()
     skill_id: str = attr.ib()
@@ -108,14 +109,14 @@ class Session(Serializeable):
 
 
 @attr.s
-class State(Serializeable):
+class State(FreeSerializeable):
     session: Optional[Dict] = attr.ib(default=None)
     user: Optional[Dict] = attr.ib(default=None)
     application: Optional[Dict] = attr.ib(default=None)
 
 
 @attr.s
-class YandexRequest(Serializeable):
+class YandexRequest(FreeSerializeable):
     meta: Meta = attr.ib(converter=Meta.from_dict)
     request: Request = attr.ib(converter=Request.from_dict)
     session: Optional[Session] = attr.ib(converter=Session.from_dict)

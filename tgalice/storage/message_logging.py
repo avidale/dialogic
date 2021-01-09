@@ -121,16 +121,23 @@ class BaseMessageLogger:
             return
         if response is not None and response.label is not None:
             msg.kwargs['label'] = response.label
-        if self.not_log_id is not None and msg.user_id in self.not_log_id:
-            # main reason: don't log pings from Yandex
-            return
-        if self.detect_pings and self.is_like_ping(context):
+        if self.should_ignore_message(result=msg, message=message, context=context, response=response):
             return
         self.save_a_message(msg.to_dict())
 
     def is_like_ping(self, context=None):
         return context is not None and context.source == SOURCES.ALICE \
                and context.message_text == 'ping' and context.session_is_new()
+
+    def should_ignore_message(
+            self, result: LoggedMessage, message=None, context: Context = None, response: Response = None
+    ) -> bool:
+        if self.not_log_id is not None and result.user_id in self.not_log_id:
+            # main reason: don't log pings from Yandex
+            return True
+        if self.detect_pings and self.is_like_ping(context):
+            return True
+        return False
 
     def save_a_message(self, message_dict):
         logger.info(message_dict)
