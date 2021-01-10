@@ -51,7 +51,7 @@ class DialogConnector:
             else:
                 self.set_user_object(context.user_id, response.updated_user_object)
 
-        result = self.standardize_output(source, message, response)
+        result = self.standardize_output(source=source, original_message=context.raw_message, response=response)
         if self.log_storage is not None:
             self.log_storage.log_response(data=result, context=context, source=context.source, response=response)
         return result

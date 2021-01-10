@@ -49,6 +49,8 @@ class Context:
             user_id = source + '__' + str(message.user_id)
             message_text = message.text
         elif source == SOURCES.ALICE:
+            if set(message.keys()) == {'body'}:
+                message = message['body']
             sess = message['session']
             if sess.get('user', {}).get('user_id'):
                 # the new user_id, which is persistent across applications
