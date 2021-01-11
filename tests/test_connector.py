@@ -90,29 +90,47 @@ def test_save_user_object_by_yandex_to_session(alice_message):
 
 def test_save_user_object_by_yandex_to_user(alice_message):
     connector = DialogConnector(Repeater(), alice_native_state='user')
+    alice_message['session']['user'] = {'user_id': '123'}
     uo = {'count': 1, 'name': 'Alex'}
     response = Response(text='привет', user_object=uo)
     output = connector.standardize_output(source=SOURCES.ALICE, original_message=alice_message, response=response)
     assert output['user_state_update'] == {'count': 1, 'name': 'Alex'}
+    assert output.get('application_state') is None
 
 
-@pytest.mark.parametrize('ans,uo', [
+def test_save_user_object_by_yandex_to_user_unauthorized(alice_message):
+    connector = DialogConnector(Repeater(), alice_native_state='user')
+    uo = {'count': 1, 'name': 'Alex'}
+    response = Response(text='привет', user_object=uo)
+    output = connector.standardize_output(source=SOURCES.ALICE, original_message=alice_message, response=response)
+    assert output['user_state_update'] == {'count': 1, 'name': 'Alex'}
+    assert output['application_state'] == {'count': 1, 'name': 'Alex'}
+
+
+@pytest.mark.parametrize('ans,uo,auth', [
     (True, {
         'session': {'value': 10},
-        'user': {'value': 42}
-    }),
-    ('session', {'value': 10}),
-    ('user', {'value': 42}),
-    (False, {}),
+        'user': {'value': 42},
+        'application': {'value': 50}
+    }, True),
+    ('session', {'value': 10}, True),
+    ('user', {'value': 42}, True),
+    ('user', {'value': 50}, False),
+    (False, {}, True),
 ])
-def test_load_user_object_by_yandex(ans, uo, alice_message):
+def test_load_user_object_by_yandex(ans, uo, auth, alice_message):
     connector = DialogConnector(Repeater(), alice_native_state=ans)
+    if auth:
+        alice_message['session']['user'] = {'user_id': '123'}
     alice_message['state'] = {
         'session': {
             'value': 10
         },
         'user': {
             'value': 42,
+        },
+        'application': {
+            'value': 50,
         }
     }
     ctx = connector.make_context(message=alice_message, source=SOURCES.ALICE)

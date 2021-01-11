@@ -61,12 +61,18 @@ class DialogConnector:
             source = self.default_source
         context = Context.from_raw(source=source, message=message)
         if source == SOURCES.ALICE and self.alice_native_state:
+            state = message.get('state', {})
             if self.alice_native_state == 'session':
-                user_object = message.get('state', {}).get('session')
+                user_object = state.get('session')
             elif self.alice_native_state == 'user':
-                user_object = message.get('state', {}).get('user')
+                user_object = state.get('user')
+                # for unauthorized users, use application state instead
+                if message.get('session') and 'user' not in message['session']:
+                    user_object = state.get('application')
+            elif self.alice_native_state == 'application':
+                user_object = state.get('application')
             else:
-                user_object = message.get('state')
+                user_object = state
         else:
             user_object = self.get_user_object(context.user_id)
         context.add_user_object(user_object)
@@ -129,11 +135,17 @@ class DialogConnector:
             if self.alice_native_state and response.updated_user_object:
                 if self.alice_native_state == 'session':
                     result['session_state'] = response.updated_user_object
+                elif self.alice_native_state == 'application':
+                    result['application_state'] = response.updated_user_object
                 elif self.alice_native_state == 'user':
+                    if original_message.get('session') and 'user' not in original_message['session']:
+                        result['application_state'] = response.updated_user_object
                     result['user_state_update'] = response.updated_user_object
                 else:
                     if 'session' in response.updated_user_object:
                         result['session_state'] = response.updated_user_object['session']
+                    if 'application' in response.updated_user_object:
+                        result['application_state'] = response.updated_user_object['application']
                     if 'user' in response.updated_user_object:
                         result['user_state_update'] = response.updated_user_object['user']
             if response.raw_response is not None:
