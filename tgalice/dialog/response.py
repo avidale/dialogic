@@ -9,6 +9,7 @@ class Response:
                  user_object=None, raw_response=None,
                  confidence=0.5, label=None,
                  rich_text=None,
+                 show_item_meta=None,
                  ):
         self.text = text
         self.suggests = suggests or []
@@ -28,6 +29,7 @@ class Response:
         self.label = label
         if rich_text:
             self.set_text(rich_text)
+        self.show_item_meta = show_item_meta
 
     @property
     def user_object(self):

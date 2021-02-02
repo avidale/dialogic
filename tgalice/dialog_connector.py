@@ -185,6 +185,8 @@ class DialogConnector:
                 result['response']['card'] = response.gallery.to_dict()
             if response.image is not None:
                 result['response']['card'] = response.image.to_dict()
+            if response.show_item_meta is not None:
+                result['response']['show_item_meta'] = response.show_item_meta
             return result
         elif source == SOURCES.FACEBOOK:
             if response.raw_response is not None:

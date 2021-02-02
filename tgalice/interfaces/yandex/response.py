@@ -72,6 +72,15 @@ class ItemsList(Card):
     footer: Optional[ItemsListFooter] = attr.ib(converter=ItemsListFooter.from_dict, default=None)
 
 
+@attr.s
+class ShowItemMeta(Serializeable):
+    content_id: Optional[str] = attr.ib(default=None)
+    title: Optional[str] = attr.ib(default=None)
+    title_tts: Optional[str] = attr.ib(default=None)
+    publication_date: Optional[str] = attr.ib(default=None)  # like "2020-12-03T10:39:32.195044179Z"
+    expiration_date: Optional[str] = attr.ib(default=None)
+
+
 def card_converter(data):
     if not data:
         return None
@@ -94,6 +103,7 @@ class Response(Serializeable):
     buttons: List[Button] = attr.ib(converter=list_converter(Button), factory=list)
     card: Optional[Union[BigImage, ItemsList]] = attr.ib(converter=card_converter, default=None)
     end_session: bool = attr.ib(default=False)
+    show_item_meta: Optional[ShowItemMeta] = attr.ib(default=None, converter=ShowItemMeta.from_dict)
 
 
 @attr.s
