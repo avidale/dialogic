@@ -51,14 +51,20 @@ class Context:
         elif source == SOURCES.ALICE:
             if set(message.keys()) == {'body'}:
                 message = message['body']
-            sess = message['session']
+            try:
+                sess = message['session']
+            except KeyError:
+                raise KeyError(f'The key "session" not found in message among keys {list(message.keys())}.')
             if sess.get('user', {}).get('user_id'):
                 # the new user_id, which is persistent across applications
                 user_id = source + '_auth__' + sess['user']['user_id']
             else:
                 # the old user id, that changes across applications
                 user_id = source + '__' + sess['user_id']
-            message_text = message['request'].get('command', '')
+            try:
+                message_text = message['request'].get('command', '')
+            except KeyError:
+                raise KeyError(f'The key "request" not found in message among keys {list(message.keys())}.')
             metadata['new_session'] = message.get('session', {}).get('new', False)
         elif source == SOURCES.FACEBOOK:
             user_id = source + '__' + message['sender']['id']
