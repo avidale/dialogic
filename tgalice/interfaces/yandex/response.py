@@ -14,6 +14,7 @@ from tgalice.utils.serialization import Serializeable, list_converter
 class CARD_TYPES:
     BIG_IMAGE = 'BigImage'
     ITEMS_LIST = 'ItemsList'
+    IMAGE_GALLERY = 'ImageGallery'
 
 
 @attr.s
@@ -73,6 +74,18 @@ class ItemsList(Card):
 
 
 @attr.s
+class ImageGalleryItem(Serializeable):
+    image_id: str = attr.ib(default=None)
+    title: str = attr.ib(default=None)
+
+
+@attr.s
+class ImageGallery(Card):
+    type: str = attr.ib(default=CARD_TYPES.IMAGE_GALLERY, init=False)
+    items: List[ImageGalleryItem] = attr.ib(converter=list_converter(ImageGalleryItem), factory=list)
+
+
+@attr.s
 class ShowItemMeta(Serializeable):
     content_id: Optional[str] = attr.ib(default=None)
     title: Optional[str] = attr.ib(default=None)
@@ -94,6 +107,8 @@ def card_converter(data):
         return BigImage.from_dict(new_data)
     if card_type == CARD_TYPES.ITEMS_LIST:
         return ItemsList.from_dict(new_data)
+    if card_type == CARD_TYPES.IMAGE_GALLERY:
+        return ImageGallery.from_dict(new_data)
 
 
 @attr.s
@@ -101,9 +116,10 @@ class Response(Serializeable):
     text: str = attr.ib()
     tts: str = attr.ib(default=None)
     buttons: List[Button] = attr.ib(converter=list_converter(Button), factory=list)
-    card: Optional[Union[BigImage, ItemsList]] = attr.ib(converter=card_converter, default=None)
+    card: Optional[Union[BigImage, ItemsList, ImageGallery]] = attr.ib(converter=card_converter, default=None)
     end_session: bool = attr.ib(default=False)
     show_item_meta: Optional[ShowItemMeta] = attr.ib(default=None, converter=ShowItemMeta.from_dict)
+    directives: Optional[Dict] = attr.ib(default=None)
 
 
 @attr.s

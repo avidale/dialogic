@@ -90,10 +90,13 @@ class DialogConnector:
 
     def standardize_output(self, source, original_message, response: Response):
         has_exit_command = False
+        directives = {}
         if response.commands:
             for command in response.commands:
                 if command == COMMANDS.EXIT:
                     has_exit_command = True
+                elif command == COMMANDS.REQUEST_GEOLOCATION:
+                    directives[COMMANDS.REQUEST_GEOLOCATION] = {}
                 else:
                     raise NotImplementedError('Command "{}" is not implemented'.format(command))
         if source == SOURCES.TELEGRAM:
@@ -187,6 +190,8 @@ class DialogConnector:
                 result['response']['card'] = response.image.to_dict()
             if response.show_item_meta is not None:
                 result['response']['show_item_meta'] = response.show_item_meta
+            if directives:
+                result['response']['directives'] = directives
             return result
         elif source == SOURCES.FACEBOOK:
             if response.raw_response is not None:

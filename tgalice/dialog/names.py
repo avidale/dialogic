@@ -10,8 +10,12 @@ class SOURCES:
 
 class COMMANDS:
     EXIT = 'exit'
+    REQUEST_GEOLOCATION = 'request_geolocation'
 
 
 class REQUEST_TYPES:
     SIMPLE_UTTERANCE = 'SimpleUtterance'
     BUTTON_PRESSED = 'ButtonPressed'
+    SHOW_PULL = 'Show.Pull'
+    GEOLOCATION_ALLOWED = 'Geolocation.Allowed'
+    GEOLOCATION_REJECTED = 'Geolocation.Rejected'

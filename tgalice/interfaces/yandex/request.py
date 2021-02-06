@@ -97,6 +97,13 @@ class Application(FreeSerializeable):
 
 
 @attr.s
+class Location(FreeSerializeable):
+    lat: Optional[float] = attr.ib(default=None)
+    lon: Optional[float] = attr.ib(default=None)
+    accuracy: Optional[float] = attr.ib(default=None)
+
+
+@attr.s
 class Session(FreeSerializeable):
     message_id: int = attr.ib()
     session_id: str = attr.ib()
@@ -106,6 +113,7 @@ class Session(FreeSerializeable):
     user: Optional[User] = attr.ib(default=None)
     application: Optional[Application] = attr.ib(default=None)
     new: bool = attr.ib(default=False)
+    location: Optional[Location] = attr.ib(default=None, converter=Location.from_dict)
 
 
 @attr.s
