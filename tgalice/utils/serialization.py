@@ -66,7 +66,8 @@ class FreeSerializeable(Serializeable):
 
     def to_dict(self):
         result = super(FreeSerializeable, self).to_dict()
-        del result['_other']
         if hasattr(self, '_other') and self._other:
             result.update(self._other)
+        if '_other' in result:
+            del result['_other']
         return result

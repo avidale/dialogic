@@ -16,6 +16,7 @@ def word2lemma(word):
 
 def fast_normalize(text, lemmatize=False):
     text = re.sub('[^a-zа-яё0-9]+', ' ', text.lower())
+    # todo: preserve floats
     # we consider '-' as a delimiter, because it is often missing in results of ASR
     text = re.sub('\\s+', ' ', text).strip()
     if lemmatize:
