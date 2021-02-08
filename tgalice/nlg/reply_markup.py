@@ -13,7 +13,8 @@ class TTSParser(HTMLParser):
     TAG_VOICE = 'voice'
     TAG_LINK = 'a'
     TAG_SPEAKER = 'speaker'  # it has no close tag
-    SUPPORTED_TAGS = {TAG_TEXT, TAG_VOICE, TAG_LINK, TAG_SPEAKER}
+    TAG_IMG = 'img'
+    SUPPORTED_TAGS = {TAG_TEXT, TAG_VOICE, TAG_LINK, TAG_SPEAKER, TAG_IMG}
 
     def __init__(self):
         super(TTSParser, self).__init__()
@@ -21,10 +22,13 @@ class TTSParser(HTMLParser):
         self._voice = ''
         self._current_tag = None
         self._links = []
+        self._image_id = None
+        self._image_url = None
 
     def handle_starttag(self, tag, attrs):
         if self._current_tag is not None:
             raise ValueError('Open tag "{}" encountered, but tag "{}" is not closed'.format(self._current_tag, tag))
+        attrs_dict = dict(attrs) if attrs else {}
         if tag not in self.SUPPORTED_TAGS:
             warnings.warn('Encountered an unknown tag "{}", will ignore it'.format(tag))
         if tag == self.TAG_SPEAKER:
@@ -32,13 +36,15 @@ class TTSParser(HTMLParser):
             return  # speaker tag cannot be current
         self._current_tag = tag
         if tag == self.TAG_LINK:
-            attrs_dict = dict(attrs)
             if 'href' not in attrs_dict:
                 raise ValueError('The "a" tag has no "href" attribute; attrs: "{}".'.format(attrs))
             link = {'url': attrs_dict['href'], 'title': ''}
             if 'hide' in attrs_dict:
                 link['hide'] = bool(distutils.util.strtobool(attrs_dict['hide']))
             self._links.append(link)
+        if tag == self.TAG_IMG:
+            self._image_id = attrs_dict.get('id')
+            self._image_url = attrs_dict.get('src')
 
     def handle_endtag(self, tag):
         if self._current_tag is None:
@@ -64,3 +70,9 @@ class TTSParser(HTMLParser):
 
     def get_links(self):
         return self._links
+
+    def get_image_id(self):
+        return self._image_id
+
+    def get_image_url(self):
+        return self._image_url

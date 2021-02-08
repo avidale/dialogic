@@ -46,6 +46,10 @@ class Response:
         self.text = parser.get_text()
         self.voice = parser.get_voice()
         self.links.extend(parser.get_links())
+        if parser.get_image_id():
+            self.image_id = parser.get_image_id()
+        if parser.get_image_url():
+            self.image_url = parser.get_image_url()
         return self
 
     def set_text(self, text_and_voice):
