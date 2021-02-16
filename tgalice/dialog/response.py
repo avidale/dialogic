@@ -1,4 +1,5 @@
 from tgalice.nlg import reply_markup, controls
+from tgalice.dialog.names import COMMANDS
 
 
 class Response:
@@ -62,3 +63,7 @@ class Response:
             'url': url,
             'hide': hide,
         })
+
+    @property
+    def has_exit_command(self) -> bool:
+        return bool(self.commands and COMMANDS.EXIT in self.commands)

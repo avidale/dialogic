@@ -3,6 +3,7 @@ import logging
 
 from datetime import datetime
 
+from ..dialog.serialized_message import SerializedMessage
 from tgalice.dialog import Context, Response
 from tgalice.dialog.names import SOURCES
 from tgalice.storage.database_utils import get_mongo_or_mock, fix_bson_keys
@@ -17,120 +18,47 @@ except ModuleNotFoundError:
 logger = logging.getLogger(__name__)
 
 
-class LoggedMessage:
-    def __init__(self, text, user_id, from_user, **kwargs):
-        self.text = text
-        self.user_id = user_id
-        self.from_user = from_user
-        self.timestamp = str(datetime.utcnow())
-        self.kwargs = kwargs
-        """
-        Expected kwargs:
-            text
-            user_id
-            message_id
-            from_user
-            username
-            reply_to_id
-            source
-            data        (original message in Alice)
-            label       (something like intent)
-            request_id  (this id the same for request and response, useful for joining logs)
-        """
-
-    def save_to_mongo(self, collection):
-        collection.insert_one(fix_bson_keys(self.to_dict()))
-
-    def to_dict(self):
-        result = {
-            'text': self.text,
-            'user_id': self.user_id,
-            'from_user': self.from_user,
-            'timestamp': self.timestamp
-        }
-        for k, v in self.kwargs.items():
-            if k not in result:
-                result[k] = v
-        return result
-
-    @classmethod
-    def from_context(cls, context: Context, **kwargs):
-        serializable_message = context.raw_message
-        if context.source == SOURCES.TELEGRAM:
-            message = context.raw_message
-            if message.reply_to_message is not None:
-                kwargs['reply_to_id'] = message.reply_to_message.message_id
-            kwargs['message_id'] = message.message_id
-            kwargs['username'] = message.chat.username
-            serializable_message = {'message': str(message)}
-        elif context.source == SOURCES.VK:
-            serializable_message = {'message': context.raw_message.to_json()}
-        if context.request_id is not None:
-            kwargs['request_id'] = context.request_id
-        return cls(
-            text=context.message_text,
-            user_id=context.user_id,
-            from_user=True,
-            data=serializable_message,
-            source=context.source,
-            **kwargs
-        )
-
-    @classmethod
-    def from_response(cls, data, context: Context, response: Response, **kwargs):
-        data = copy.deepcopy(data)
-        if context.source == SOURCES.TELEGRAM:
-            message = context.raw_message
-            kwargs['reply_to_id'] = message.message_id
-            kwargs['username'] = message.chat.username
-            # todo: maybe somehow get message_id for output messages
-            if 'reply_markup' in data:
-                data['reply_markup'] = data['reply_markup'].to_json()
-        if context.request_id is not None:
-            kwargs['request_id'] = context.request_id
-        if response.label:
-            kwargs['label'] = response.label
-        return cls(
-            text=response.text,
-            user_id=context.user_id,
-            from_user=False,
-            data=data,
-            source=context.source,
-            **kwargs
-        )
-
-
 class BaseMessageLogger:
     def __init__(self, detect_pings=False, not_log_id=None):
         self.detect_pings = detect_pings
         self.not_log_id = not_log_id or set()
 
     def log_context(self, context, **kwargs):
-        return self.log_message(message=context.raw_message, context=context, source=context.source, **kwargs)
+        raise DeprecationWarning(
+            'This operation is no longer supported - please, use log_data method.'
+        )
 
     def log_response(self, data, source, context=None, response=None, **kwargs):
-        return self.log_message(message=data, source=source, context=context, response=response, **kwargs)
+        raise DeprecationWarning(
+            'This operation is no longer supported - please, use log_data method.'
+        )
 
     def log_message(self, message, source, context=None, response=None, **kwargs):
-        if context is not None:
-            if response is not None:
-                msg = LoggedMessage.from_response(message, context=context, response=response)
-            else:
-                msg = LoggedMessage.from_context(context)
-        else:
+        raise DeprecationWarning(
+            'This operation is no longer supported - please, use log_data method.'
+        )
+
+    def log_data(
+            self,
+            data: SerializedMessage,
+            context: Context = None,
+            response: Response = None,
+            **kwargs
+    ):
+        if not data:
             return
         if response is not None and response.label is not None:
-            msg.kwargs['label'] = response.label
-        if self.should_ignore_message(result=msg, message=message, context=context, response=response):
+            data.kwargs['label'] = response.label
+        if self.should_ignore_message(result=data, context=context, response=response):
             return
-        self.save_a_message(msg.to_dict())
+        self.save_a_message(data.to_dict())
 
     def is_like_ping(self, context=None):
         return context is not None and context.source == SOURCES.ALICE \
                and context.message_text == 'ping' and context.session_is_new()
 
     def should_ignore_message(
-            self, result: LoggedMessage, message=None, context: Context = None, response: Response = None
+            self, result: SerializedMessage, context: Context = None, response: Response = None
     ) -> bool:
         if self.not_log_id is not None and result.user_id in self.not_log_id:
             # main reason: don't log pings from Yandex
@@ -140,6 +68,8 @@ class BaseMessageLogger:
         return False
 
     def save_a_message(self, message_dict):
+        logger.warning('You are using a BaseMessageLogger that does not store messages. '
+                       'Please extend it to save logs directly to a database.')
         logger.info(message_dict)
 
 
