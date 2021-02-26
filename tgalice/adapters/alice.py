@@ -41,6 +41,7 @@ class AliceAdapter(BaseAdapter):
             message_text=message_text,
             metadata=metadata,
             user_id=user_id,
+            session_id=sess.get('session_id'),
             source=self.SOURCE,
             raw_message=message,
         )

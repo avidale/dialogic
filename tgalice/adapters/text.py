@@ -13,6 +13,7 @@ class TextAdapter(BaseAdapter):
             message_text=message,
             metadata={},
             user_id='the_text_user',
+            session_id='the_text_session',
             source=self.SOURCE,
             raw_message=message,
         )

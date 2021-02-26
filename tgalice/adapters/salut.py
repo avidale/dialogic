@@ -20,7 +20,7 @@ class SalutAdapter(BaseAdapter):
         payload = message.get('payload') or {}
         pm = payload.get('message')
 
-        user_id = user.get('userId')
+        user_id = self.SOURCE + '__' + user.get('userId')
 
         message_text = (pm or {}).get('original_text') or ''
 
@@ -31,6 +31,7 @@ class SalutAdapter(BaseAdapter):
             message_text=message_text,
             metadata=metadata,
             user_id=user_id,
+            session_id=message.get('sessionId'),
             source=self.SOURCE,
             raw_message=message,
         )

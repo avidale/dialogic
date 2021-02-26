@@ -3,11 +3,12 @@ from datetime import datetime
 
 class SerializedMessage:
     # a base class for e.g. logging messages
-    def __init__(self, text, user_id, from_user, timestamp=None, **kwargs):
+    def __init__(self, text, user_id, from_user, timestamp=None, session_id=None, **kwargs):
         self.text = text
         self.user_id = user_id
         self.from_user = from_user
         self.timestamp = timestamp or str(datetime.utcnow())
+        self.session_id = session_id
         self.kwargs = kwargs
         """
         Expected kwargs:
@@ -28,7 +29,8 @@ class SerializedMessage:
             'text': self.text,
             'user_id': self.user_id,
             'from_user': self.from_user,
-            'timestamp': self.timestamp
+            'timestamp': self.timestamp,
+            'session_id': self.session_id,
         }
         for k, v in self.kwargs.items():
             if k not in result:

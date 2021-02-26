@@ -16,11 +16,13 @@ class TelegramAdapter(BaseAdapter):
         self.suggest_cols = suggest_cols
 
     def make_context(self, message: Message, **kwargs) -> Context:
+        uid = self.SOURCE + '__' + str(message.from_user.id)
         ctx = Context(
             user_object=None,
             message_text=message.text,
             metadata={},
-            user_id=self.SOURCE + '__' + str(message.from_user.id),
+            user_id=uid,
+            session_id=uid,
             source=self.SOURCE,
             raw_message=message,
         )

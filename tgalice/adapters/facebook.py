@@ -8,11 +8,13 @@ class FacebookAdapter(BaseAdapter):
     SOURCE = SOURCES.FACEBOOK
 
     def make_context(self, message: Dict, **kwargs) -> Context:
+        uid = self.SOURCE + '__' + message['sender']['id']
         ctx = Context(
             user_object=None,
             message_text=message.get('message', {}).get('text', ''),
             metadata={},
-            user_id=self.SOURCE + '__' + message['sender']['id'],
+            user_id=uid,
+            session_id=uid,
             source=self.SOURCE,
             raw_message=message,
         )

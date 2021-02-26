@@ -13,11 +13,13 @@ class VkAdapter(BaseAdapter):
         self.suggest_cols = suggest_cols
 
     def make_context(self, message, **kwargs) -> Context:
+        uid = self.SOURCE + '__' + str(message.user_id)
         ctx = Context(
             user_object=None,
             message_text=message.text,
             metadata={},
-            user_id=self.SOURCE + '__' + str(message.user_id),
+            user_id=uid,
+            session_id=uid,
             source=self.SOURCE,
             raw_message=message,
         )

@@ -31,6 +31,7 @@ class BaseAdapter:
             from_user=True,
             data=data,
             source=context.source,
+            session_id=context.session_id,
             **kwargs
         )
 
@@ -46,6 +47,7 @@ class BaseAdapter:
             from_user=False,
             data=data,
             source=context.source,
+            session_id=context.session_id,
             **kwargs
         )
 
