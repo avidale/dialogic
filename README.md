@@ -1,7 +1,7 @@
 # tgalice
 [![PyPI version](https://badge.fury.io/py/tgalice.svg)](https://badge.fury.io/py/tgalice)
 
-This is yet another common Python wrapper for Alice skills 
+This is yet another common Python wrapper for Alice and Salut skills 
 and bots in Telegram<sup>[*](#footnote1)</sup>, VK, 
 and Facebook Messenger.
 
@@ -11,6 +11,7 @@ Currently, it provides:
     - a simple FAQ dialog manager
     - a simple form-filling dialog manager
     - a flexible finite state automaton dialog manager
+    - an even more flexible turn-based dialog manager
 - A wrapper for storing dialogue state: `BaseStorage` and its flavors (specifially, `MongoBasedStorage`)
 - Yet another wrapper for serving your bot as a Flask application
 
@@ -38,8 +39,9 @@ server = tgalice.flask_server.FlaskServer(connector=connector)
 if __name__ == '__main__':
     server.parse_args_and_run()
 ```
-Now, if your app is hosted on address `{BASE_URL}`, then webhooks for Alice and Facebook will be available, 
-respectively, at `{BASE_URL}/alice/` and `{BASE_URL}/fb/` (and you can reconfigure it, if you want). 
+Now, if your app is hosted on address `{BASE_URL}`, 
+then webhooks for Alice, Salut and Facebook will be available, 
+respectively, at `{BASE_URL}/alice/`, `{BASE_URL}/salut/`, and `{BASE_URL}/fb/` (and you can reconfigure it, if you want). 
 The webhook for Telegram will be set automatically, if you set the `TOKEN` environment variable to the token 
 given to you by the [@BotFather](https://t.me/BotFather).
 

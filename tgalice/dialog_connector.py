@@ -4,7 +4,9 @@ from typing import Optional, Dict
 
 from .storage.message_logging import BaseMessageLogger
 
-from .adapters import AliceAdapter, BaseAdapter, FacebookAdapter, TextAdapter, TelegramAdapter, VkAdapter
+from .adapters import (
+    AliceAdapter, BaseAdapter, FacebookAdapter, TextAdapter, TelegramAdapter, VkAdapter, SalutAdapter
+)
 
 from tgalice.storage.session_storage import BaseStorage
 from tgalice.dialog_manager.base import Response, Context
@@ -53,6 +55,8 @@ class DialogConnector:
             self.adapters[SOURCES.TELEGRAM] = TelegramAdapter(suggest_cols=self.tg_suggests_cols)
         if SOURCES.VK not in self.adapters:
             self.adapters[SOURCES.VK] = VkAdapter()
+        if SOURCES.SALUT not in self.adapters:
+            self.adapters[SOURCES.SALUT] = SalutAdapter()
 
     def add_adapter(self, name: str, adapter: BaseAdapter):
         self.adapters[name] = adapter

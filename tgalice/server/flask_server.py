@@ -29,6 +29,7 @@ class FlaskServer:
             facebook_verify_token=None,
             base_url=None,
             alice_url='alice/', telegram_url='tg/', facebook_url='fb/', vk_url='vk/',
+            salut_url='salut/',
             restart_webhook_url='restart_webhook',
             vk_token=None,
             vk_group_id=None,
@@ -43,6 +44,7 @@ class FlaskServer:
             base_url = os.environ.get('BASE_URL')
         self.base_url = base_url
         self.alice_url = alice_url
+        self.salut_url = salut_url
         self.telegram_url = telegram_url
         self.facebook_url = facebook_url
         self.vk_url = vk_url
@@ -54,6 +56,9 @@ class FlaskServer:
 
         logger.info('The Alice webhook is available on "{}"'.format(self.alice_webhook_url))
         self.app.route(self.alice_webhook_url, methods=['POST'])(self.alice_response)
+
+        logger.info('The Salut webhook is available on "{}"'.format(self.salut_webhook_url))
+        self.app.route(self.salut_webhook_url, methods=['POST'])(self.salut_response)
 
         if self.telegram_token is not None:
             self.bot = telebot.TeleBot(self.telegram_token)
@@ -102,6 +107,10 @@ class FlaskServer:
         return "/" + self.alice_url
 
     @property
+    def salut_webhook_url(self):
+        return "/" + self.salut_url
+
+    @property
     def facebook_webhook_url(self):
         return '/' + self.facebook_url
 
@@ -113,6 +122,12 @@ class FlaskServer:
         logger.info('Got message from Alice: {}'.format(request.json))
         response = self.connector.respond(request.json, source=SOURCES.ALICE)
         logger.info('Sending message to Alice: {}'.format(response))
+        return json.dumps(response, ensure_ascii=False, indent=2)
+
+    def salut_response(self):
+        logger.info('Got message from Salut: {}'.format(request.json))
+        response = self.connector.respond(request.json, source=SOURCES.SALUT)
+        logger.info('Sending message to Salut: {}'.format(response))
         return json.dumps(response, ensure_ascii=False, indent=2)
 
     def tg_response(self, message):

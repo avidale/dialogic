@@ -1,5 +1,7 @@
 import pytest
 
+from tgalice import COMMANDS
+from tgalice.adapters import SalutAdapter
 from tgalice.dialog_connector import DialogConnector, SOURCES
 from tgalice.dialog_manager import BaseDialogManager, Response
 
@@ -135,3 +137,112 @@ def test_load_user_object_by_yandex(ans, uo, auth, alice_message):
     }
     ctx = connector.make_context(message=alice_message, source=SOURCES.ALICE)
     assert ctx.user_object == uo
+
+
+@pytest.fixture
+def salut_req():
+    result = {
+        'messageId': 1614362356647,
+        'sessionId': 'a298a38a-faa8-442f-97fd-1a53555c6d26',
+        'messageName': 'MESSAGE_TO_SKILL',
+        'payload': {
+            'applicationId': '975dd918-8833-42ff-8c4f-d97dadb3368f',
+            'appversionId': 'afda44e3-72dd-4d63-9cf6-3e6371e0d775',
+            'projectName': 'b64d2304-20ea-4bc5-8e82-0b194bf79be8',
+            'intent': 'run_app',
+            'original_intent': 'axon',
+            'intent_meta': {},
+            'message': {
+                'original_text': 'настоящий',
+                'normalized_text': 'настоящий .',
+                'tokenized_elements_list': [
+                    {
+                        'text': 'настоящий',
+                        'raw_text': 'настоящий',
+                        'grammem_info': {
+                            'case': 'nom',
+                            'degree': 'pos',
+                            'gender': 'masc',
+                            'number': 'sing',
+                            'raw_gram_info': 'case=nom|degree=pos|gender=masc|number=sing',
+                            'part_of_speech': 'ADJ'
+                        },
+                        'lemma': 'настоящий',
+                        'is_stop_word': False,
+                        'list_of_dependents': [],
+                        'dependency_type': 'root',
+                        'head': 0
+                    },
+                    {
+                        'raw_text': '.',
+                        'text': '.',
+                        'lemma': '.',
+                        'token_type': 'SENTENCE_ENDPOINT_TOKEN',
+                        'token_value': {'value': '.'},
+                        'list_of_token_types_data': [
+                            {
+                                'token_type': 'SENTENCE_ENDPOINT_TOKEN',
+                                'token_value': {
+                                    'value': '.'}}]
+                    }],
+                'entities': {},
+                'original_message_name': 'MESSAGE_FROM_USER',
+                'human_normalized_text': 'настоящий',
+                'asr_normalized_message': None,
+                'human_normalized_text_with_anaphora': 'настоящий'},
+            'device': {'platformType': 'web', 'platformVersion': '1',
+                       'surface': 'SBERBOX', 'surfaceVersion': '1',
+                       'deviceId': '', 'deviceManufacturer': '',
+                       'deviceModel': ''},
+            'app_info': {
+                'projectId': 'e4f4a982-f80d-47cc-89d2-3321fe2b11fd',
+                'applicationId': '975dd918-8833-42ff-8c4f-d97dadb3368f',
+                'appversionId': 'afda44e3-72dd-4d63-9cf6-3e6371e0d775',
+                'systemName': None,
+                'frontendEndpoint': None,
+                'frontendType': 'DIALOG'
+            }, 'annotations': {
+                'censor_data': {'classes': ['politicians', 'obscene', 'model_response'],
+                                'probas': [0, 0, 0.006988049950450659]},
+                'text_sentiment': {'classes': ['negative', 'positive', 'neutral'],
+                                   'probas': [0.000301319727441296, 0.06846659630537033, 0.9312320351600647]},
+                'asr_sentiment': {'classes': [], 'probas': []}
+            },
+            'selected_item': {},
+            'new_session': False,
+            'strategies': {'last_call': None},
+            'character': {'id': 'sber', 'name': 'Сбер', 'gender': 'male', 'appeal': 'official'},
+            'meta': {'current_app': {}, 'time': {}},
+            'asr': {}
+        },
+        'uuid': {
+            'userId': '803de100-edd6-41d8-6d77',
+            'sub': 'wXjow3XPPKlnD6lq4EnEIIimjqieg4hilLy8PZvF++',
+            'userChannel': 'B2C'
+        }
+    }
+    return result
+
+
+def test_salut_request(salut_req):
+    adapter = SalutAdapter()
+    ctx = adapter.make_context(salut_req)
+    assert ctx.message_text == 'настоящий'
+
+
+def test_salut_response(salut_req):
+    adapter = SalutAdapter()
+    response = Response(
+        text='kek',
+        voice='brekekek',
+        suggests=['yes', 'no'],
+        commands=[COMMANDS.EXIT],
+        links=[{'title': 'click me', 'url': 'www.com'}]
+    )
+    result = adapter.make_response(response=response, original_message=salut_req)
+    assert len(result['uuid']) == 3
+    assert result['payload']['pronounceText'] == 'brekekek'
+    assert result['payload']['items'] == [{'bubble': {'text': 'kek'}}]
+    assert len(result['payload']['suggestions']['buttons']) == 3
+    assert 'device' in result['payload']
+    assert result['payload']['finished'] is True

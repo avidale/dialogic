@@ -2,6 +2,7 @@
 class SOURCES:
     ALICE = 'alice'
     FACEBOOK = 'facebook'
+    SALUT = 'salut'
     TELEGRAM = 'telegram'
     TEXT = 'text'
     VK = 'vk'

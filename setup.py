@@ -5,10 +5,10 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setuptools.setup(
     name="tgalice",
-    version="0.2.27",
+    version="0.2.28",
     author="David Dale",
     author_email="dale.david@mail.ru",
-    description="Yet another common wrapper for Alice skills and Facebook/Telegram bots",
+    description="Yet another common wrapper for Alice/Salut skills and Facebook/Telegram/VK bots",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/avidale/tgalice",
