@@ -5,7 +5,7 @@ from datetime import datetime
 
 from ..dialog.serialized_message import SerializedMessage
 from tgalice.dialog import Context, Response
-from tgalice.dialog.names import SOURCES
+from tgalice.dialog.names import SOURCES, REQUEST_TYPES
 from tgalice.storage.database_utils import get_mongo_or_mock, fix_bson_keys
 
 
@@ -19,9 +19,10 @@ logger = logging.getLogger(__name__)
 
 
 class BaseMessageLogger:
-    def __init__(self, detect_pings=False, not_log_id=None):
+    def __init__(self, detect_pings=False, not_log_id=None, ignore_show=True):
         self.detect_pings = detect_pings
         self.not_log_id = not_log_id or set()
+        self.ignore_show = ignore_show
 
     def log_context(self, context, **kwargs):
         raise DeprecationWarning(
@@ -65,6 +66,9 @@ class BaseMessageLogger:
             return True
         if self.detect_pings and self.is_like_ping(context):
             return True
+        if self.ignore_show:
+            if context.yandex and context.yandex.request and context.yandex.request.type == REQUEST_TYPES.SHOW_PULL:
+                return True
         return False
 
     def save_a_message(self, message_dict):

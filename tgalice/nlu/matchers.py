@@ -10,10 +10,7 @@ from types import ModuleType
 
 from ..nlu import basic_nlu
 
-try:
-    import regex
-except ImportError:
-    regex = None
+from .regex_utils import regex
 
 try:
     from pyemd import emd

@@ -6,3 +6,4 @@ from .base import (
 from .faq import FAQDialogManager
 from .form_filling import FormFillingDialogManager
 from .automaton import AutomatonDialogManager
+from .turning import TurnDialogManager
