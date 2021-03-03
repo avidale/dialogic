@@ -92,12 +92,17 @@ class VKBot:
         """ Remove all callback webhooks from the group (default), or one or several specific webhooks """
         if webhook_id is None:
             result = self._request_api('groups.getCallbackServers')
-            webhook_ids = [server['id'] for server in result['response']['items']]
+            if 'response' in result:
+                webhook_ids = [server['id'] for server in result['response']['items']]
+            else:
+                logger.debug(f'vk callback servers response is {result}')
+                webhook_ids = []
         elif isinstance(webhook_id, int):
             webhook_ids = [webhook_id]
         else:
             # assume it's a list of ids
             webhook_ids = webhook_id
+
         for server_id in webhook_ids:
             logger.debug('removing server {}'.format(server_id))
             self._request_api('groups.deleteCallbackServer', server_id=server_id)
@@ -105,7 +110,11 @@ class VKBot:
     def _get_webhook_secret_code(self):
         logger.info('looking for webhook secret code...')
         j = self._request_api('groups.getCallbackConfirmationCode')
-        return j['response']['code']
+        if 'response' in j:
+            return j['response']['code']
+        else:
+            logger.debug(f'vk webhook secret code response is {j}')
+            return
 
     def set_webhook(self, url, secret_key=None, title='default hook', remove_old=True, events=None):
         """ Create a webhook to the specified URL.

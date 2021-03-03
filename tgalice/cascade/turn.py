@@ -52,6 +52,10 @@ class DialogTurn:
     def next_stage(self) -> Optional[str]:
         return self.user_object.get(self._STAGE)
 
+    @next_stage.setter
+    def next_stage(self, value):
+        self.user_object[self._STAGE] = value
+
     @stage.setter
     def stage(self, value):
         self.user_object[self._STAGE] = value
