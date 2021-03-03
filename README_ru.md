@@ -6,7 +6,7 @@
 Это очередная обёртка на Python для навыков
 [Алисы](https://yandex.ru/dev/dialogs/alice/doc/about.html) и 
 [Салюта](https://salute.sber.ru/smartmarket/dev/) (Сбер) и ботов
-в Telegram, <sup>[*](#footnote1)</sup>, VK, и Facebook.
+в Telegram <sup>[*](#footnote1)</sup>, VK, и Facebook.
 
 Она позволяет как быстро писать прототипы ботов для разных платформ, 
 так и масштабировать их, когда кода и сценариев становится много.
