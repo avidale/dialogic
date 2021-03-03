@@ -1,12 +1,12 @@
-import tgalice
+import dialogic
 
-from tgalice.testing.testing_utils import make_context
+from dialogic.testing.testing_utils import make_context
 
 
 DEFAULT_MESSAGE = 'this is the default message'
 
 
-class CheckableFormFiller(tgalice.dialog_manager.form_filling.FormFillingDialogManager):
+class CheckableFormFiller(dialogic.dialog_manager.form_filling.FormFillingDialogManager):
     SIGNS = {
         'jan': 'The Goat',
         'feb': 'The Water Bearer',
@@ -23,7 +23,7 @@ class CheckableFormFiller(tgalice.dialog_manager.form_filling.FormFillingDialogM
     }
 
     def handle_completed_form(self, form, user_object, ctx):
-        response = tgalice.dialog_manager.base.Response(
+        response = dialogic.dialog_manager.base.Response(
             text='Thank you, {}! Now we know: you are {} years old and you are probably {}. Lucky you!'.format(
                 form['fields']['name'],
                 2019 - int(form['fields']['year']),

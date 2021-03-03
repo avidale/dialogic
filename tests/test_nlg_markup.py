@@ -1,5 +1,5 @@
-from tgalice.nlg.reply_markup import TTSParser
-from tgalice.dialog_manager.base import Response
+from dialogic.nlg.reply_markup import TTSParser
+from dialogic.dialog_manager.base import Response
 
 PARSED_RESPONSE = dict(
     markup='This markup be used in <text>Yandex.Dialogs</text><voice>Yandex Dialogs</voice> and other platforms.'

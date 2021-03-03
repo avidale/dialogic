@@ -1,5 +1,5 @@
-from tgalice.nlu.matchers import make_matcher_with_regex, JaccardMatcher
-from tgalice.nlu.regex_expander import load_intents_with_replacement
+from dialogic.nlu.matchers import make_matcher_with_regex, JaccardMatcher
+from dialogic.nlu.regex_expander import load_intents_with_replacement
 
 
 def test_expander():

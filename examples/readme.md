@@ -8,7 +8,7 @@ This example shows how to actually build a bot that can be deployed e.g. on Hero
 - `controls.py` and `multimedia.py` show how to work with inputs and outputs other than pure text.
 
 The file `requirements.txt` describes the packages required to run the bot 
-(only `tgalice` and `flask` in this example).
+(only `dialogic` and `flask` in this example).
 
 The file `Procfile` is needed only for Heroku: it shows what to run when your bot is deployed.
 

@@ -1,6 +1,6 @@
 import pytest
 
-import tgalice.interfaces.yandex as yandex
+import dialogic.interfaces.yandex as yandex
 
 
 @pytest.fixture

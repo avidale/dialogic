@@ -1,4 +1,4 @@
-from tgalice.nlg.sampling import sample
+from dialogic.nlg.sampling import sample
 
 
 def test_sample():

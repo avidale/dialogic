@@ -1,4 +1,4 @@
-from tgalice.nlg.morph import inflect_case, with_number, human_duration
+from dialogic.nlg.morph import inflect_case, with_number, human_duration
 
 
 def test_inflect_case():

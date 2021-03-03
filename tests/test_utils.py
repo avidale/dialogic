@@ -1,4 +1,4 @@
-from tgalice.utils.collections import make_unique, sample_at_most
+from dialogic.utils.collections import make_unique, sample_at_most
 
 import random
 

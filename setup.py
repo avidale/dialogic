@@ -4,14 +4,14 @@ with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
 setuptools.setup(
-    name="tgalice",
-    version="0.2.28",
+    name="dialogic",
+    version="0.3.0",
     author="David Dale",
     author_email="dale.david@mail.ru",
     description="Yet another common wrapper for Alice/Salut skills and Facebook/Telegram/VK bots",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/avidale/tgalice",
+    url="https://github.com/avidale/dialogic",
     packages=setuptools.find_packages(),
     license="MIT",
     classifiers=[

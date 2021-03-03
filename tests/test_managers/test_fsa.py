@@ -1,8 +1,8 @@
 import pytest
-import tgalice
+import dialogic
 
-from tgalice.dialog_manager.automaton import AutomatonDialogManager
-from tgalice.testing.testing_utils import make_context
+from dialogic.dialog_manager.automaton import AutomatonDialogManager
+from dialogic.testing.testing_utils import make_context
 
 
 def test_empty_fsa():

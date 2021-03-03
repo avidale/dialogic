@@ -4,13 +4,13 @@ This file illustrates several techniques:
 - how to extract intents from Yandex native NLU
 """
 
-import tgalice
+import dialogic
 
 
-class ExampleDialogManager(tgalice.dialog_manager.BaseDialogManager):
+class ExampleDialogManager(dialogic.dialog_manager.BaseDialogManager):
     def respond(self, ctx):
-        if ctx.source != tgalice.SOURCES.ALICE:
-            return tgalice.dialog.Response('Простите, но я работаю только в Алисе.')
+        if ctx.source != dialogic.SOURCES.ALICE:
+            return dialogic.dialog.Response('Простите, но я работаю только в Алисе.')
         suggests = ['меня зовут иван', 'как меня зовут', 'сколько было сессий', 'повтори']
         uo = ctx.user_object
         if 'user' not in uo:
@@ -40,13 +40,13 @@ class ExampleDialogManager(tgalice.dialog_manager.BaseDialogManager):
             text = 'У нас с вами было уже {} разговоров!'.format(uo['user'].get('sessions', 0))
 
         uo['session']['last_phrase'] = text
-        return tgalice.dialog_manager.Response(user_object=uo, text=text, suggests=suggests)
+        return dialogic.dialog_manager.Response(user_object=uo, text=text, suggests=suggests)
 
 
 if __name__ == '__main__':
-    connector = tgalice.dialog_connector.DialogConnector(
+    connector = dialogic.dialog_connector.DialogConnector(
         dialog_manager=ExampleDialogManager(),
         alice_native_state=True,
     )
-    server = tgalice.server.flask_server.FlaskServer(connector=connector)
+    server = dialogic.server.flask_server.FlaskServer(connector=connector)
     server.parse_args_and_run()

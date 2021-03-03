@@ -1,9 +1,9 @@
 from unittest.mock import patch
 
-import tgalice
+import dialogic
 
-from tgalice.utils.content_manager import YandexImageAPI
-from tgalice.dialog_connector import DialogConnector
+from dialogic.utils.content_manager import YandexImageAPI
+from dialogic.dialog_connector import DialogConnector
 
 
 def test_image_api():
@@ -95,9 +95,9 @@ def test_image_api():
 
     # test automatic conversion of urls to ids
     connector = DialogConnector(dialog_manager=None, image_manager=manager)
-    response = tgalice.dialog.Response('this is an oak', image_url='trees.com/oak.jpg')
+    response = dialogic.dialog.Response('this is an oak', image_url='trees.com/oak.jpg')
     result = connector.standardize_output(
-        source=tgalice.SOURCES.ALICE,
+        source=dialogic.SOURCES.ALICE,
         original_message={'version': '1.0'},
         response=response
     )

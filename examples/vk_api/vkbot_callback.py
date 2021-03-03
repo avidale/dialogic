@@ -3,10 +3,10 @@ import os
 
 from flask import Flask, request
 
-from tgalice.interfaces.vk import VKBot, VKMessage
+from dialogic.interfaces.vk import VKBot, VKMessage
 
 logging.basicConfig(level=logging.INFO)
-logging.getLogger('tgalice.interfaces.vk').setLevel(logging.DEBUG)
+logging.getLogger('dialogic.interfaces.vk').setLevel(logging.DEBUG)
 
 
 app = Flask(__name__)

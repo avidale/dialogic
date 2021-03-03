@@ -1,6 +1,6 @@
 import logging
 import re
-import tgalice
+import dialogic
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -10,9 +10,9 @@ IMAGE_ID_IN_ALICE = '213044/0c6463a2a6eb7f935034'
 IMAGE_IN_WEB = 'https://i.pinimg.com/originals/43/94/ab/4394abfe9d1a8feeeedfccc41c0e9df2.gif'
 
 
-class ExampleMediaDialogManager(tgalice.dialog_manager.BaseDialogManager):
+class ExampleMediaDialogManager(dialogic.dialog_manager.BaseDialogManager):
     def respond(self, ctx):
-        response = tgalice.dialog_manager.Response(text='please take it', user_object=ctx.user_object)
+        response = dialogic.dialog_manager.Response(text='please take it', user_object=ctx.user_object)
         has_context = False
         text = ctx.message_text.lower()
         if re.match('.*(image|picture).*', text):
@@ -33,9 +33,9 @@ class ExampleMediaDialogManager(tgalice.dialog_manager.BaseDialogManager):
 
 
 if __name__ == '__main__':
-    connector = tgalice.dialog_connector.DialogConnector(
+    connector = dialogic.dialog_connector.DialogConnector(
         dialog_manager=ExampleMediaDialogManager(),
-        storage=tgalice.storage.session_storage.BaseStorage()
+        storage=dialogic.storage.session_storage.BaseStorage()
     )
-    server = tgalice.server.flask_server.FlaskServer(connector=connector)
+    server = dialogic.server.flask_server.FlaskServer(connector=connector)
     server.parse_args_and_run()

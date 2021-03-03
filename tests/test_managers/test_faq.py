@@ -1,13 +1,13 @@
-import tgalice
+import dialogic
 
-from tgalice.testing.testing_utils import make_context
+from dialogic.testing.testing_utils import make_context
 
 
 DEFAULT_MESSAGE = 'this is the default message'
 
 
 def test_faq():
-    dm = tgalice.dialog_manager.FAQDialogManager(
+    dm = dialogic.dialog_manager.FAQDialogManager(
         'tests/test_managers/faq.yaml',
         matcher='cosine',
         default_message=DEFAULT_MESSAGE

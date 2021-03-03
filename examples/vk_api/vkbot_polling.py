@@ -1,7 +1,7 @@
 import logging
 import os
 
-from tgalice.interfaces.vk import VKBot, VKMessage
+from dialogic.interfaces.vk import VKBot, VKMessage
 
 logging.basicConfig(level=logging.DEBUG)
 

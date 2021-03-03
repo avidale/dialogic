@@ -1,4 +1,4 @@
-import tgalice.nlg.controls as ctrl
+import dialogic.nlg.controls as ctrl
 
 
 def test_simple_button():

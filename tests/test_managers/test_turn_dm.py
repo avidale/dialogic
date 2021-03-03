@@ -1,6 +1,6 @@
-from tgalice.cascade import Cascade, DialogTurn
-from tgalice.dialog_manager import TurnDialogManager
-from tgalice.testing.testing_utils import make_context
+from dialogic.cascade import Cascade, DialogTurn
+from dialogic.dialog_manager import TurnDialogManager
+from dialogic.testing.testing_utils import make_context
 
 
 def test_turn_dm():

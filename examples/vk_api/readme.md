@@ -1,4 +1,4 @@
-These examples show how to use VK API without the rest of `tgalice`.
+These examples show how to use VK API without the rest of `dialogic`.
 
 When creating this interface, I intended it to be similar to 
 https://github.com/eternnoir/pyTelegramBotAPI.

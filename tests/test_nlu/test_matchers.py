@@ -3,7 +3,7 @@ import pytest
 import math
 
 
-from tgalice.nlu import matchers
+from dialogic.nlu import matchers
 
 sample_texts = ['привет', 'добрый день', 'сколько времени']
 sample_labels = ['hello', 'hello', 'get_time']

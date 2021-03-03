@@ -1,6 +1,6 @@
 import copy
 import logging
-import tgalice
+import dialogic
 
 
 logging.basicConfig(level=logging.DEBUG)
@@ -14,24 +14,24 @@ SHOW_LOAD = 'Загрузка элементов'
 SUGGESTS = [SHOW_JSON_GALLERY, SHOW_OBJECT_GALLERY, SHOW_JSON_TEXT, SHOW_LOAD]
 
 
-class ControlsDialogManager(tgalice.dialog_manager.BaseDialogManager):
+class ControlsDialogManager(dialogic.dialog_manager.BaseDialogManager):
     def respond(self, ctx):
-        response = tgalice.dialog_manager.Response('это текст по умолчанию')
+        response = dialogic.dialog_manager.Response('это текст по умолчанию')
         if ctx.message_text.lower() == SHOW_OBJECT_GALLERY.lower():
-            response.gallery = tgalice.nlg.controls.Gallery(
+            response.gallery = dialogic.nlg.controls.Gallery(
                 title='Большая галерея',
                 items=[
-                    tgalice.nlg.controls.GalleryItem(title='Первый элемент'),
-                    tgalice.nlg.controls.GalleryItem(title='Второй элемент'),
+                    dialogic.nlg.controls.GalleryItem(title='Первый элемент'),
+                    dialogic.nlg.controls.GalleryItem(title='Второй элемент'),
                 ],
-                footer=tgalice.nlg.controls.GalleryFooter(text='Низ', button_payload={'нажал': 'подвал'})
+                footer=dialogic.nlg.controls.GalleryFooter(text='Низ', button_payload={'нажал': 'подвал'})
             )
         elif ctx.message_text.lower() == SHOW_JSON_GALLERY.lower():
             response.raw_response = RAW_GALLERY
         elif ctx.message_text.lower() == SHOW_JSON_TEXT.lower():
             response.raw_response = RAW_TEXT
         elif ctx.message_text.lower() == SHOW_LOAD.lower():
-            response.set_text('Вот тут ссыль <a href="https://github.com/avidale/tgalice" hide=false>ссыль</a>')
+            response.set_text('Вот тут ссыль <a href="https://github.com/avidale/dialogic" hide=false>ссыль</a>')
         response.suggests.extend(SUGGESTS)
         return response
 
@@ -123,10 +123,10 @@ RAW_GALLERY['card'] = {
 }
 
 if __name__ == '__main__':
-    connector = tgalice.dialog_connector.DialogConnector(
+    connector = dialogic.dialog_connector.DialogConnector(
         dialog_manager=ControlsDialogManager(),
-        storage=tgalice.storage.session_storage.BaseStorage(),
+        storage=dialogic.storage.session_storage.BaseStorage(),
         tg_suggests_cols=2,
     )
-    server = tgalice.server.flask_server.FlaskServer(connector=connector)
+    server = dialogic.server.flask_server.FlaskServer(connector=connector)
     server.parse_args_and_run()

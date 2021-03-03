@@ -1,6 +1,6 @@
 from unittest.mock import patch, MagicMock
 
-from tgalice.interfaces.vk import VKBot, VKMessage
+from dialogic.interfaces.vk import VKBot, VKMessage
 
 
 @patch('requests.post')

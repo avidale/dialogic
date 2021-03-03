@@ -1,7 +1,7 @@
 import pytest
-from tgalice.cascade import Cascade, DialogTurn
-from tgalice.dialog import Context
-from tgalice.testing.testing_utils import make_context
+from dialogic.cascade import Cascade, DialogTurn
+from dialogic.dialog import Context
+from dialogic.testing.testing_utils import make_context
 
 csc = Cascade()
 

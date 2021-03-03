@@ -1,6 +1,6 @@
-import tgalice
+import dialogic
 
-from tgalice.dialog.phrase import Phrase
+from dialogic.dialog.phrase import Phrase
 
 
 def test_phrase_from_string():
@@ -23,7 +23,7 @@ def test_phrase_from_dict():
         'suggests': ['Ciao', 'Bye'],
     })
     resp = p1.render(additional_suggests=['Auf Wiedersehen'])
-    assert resp.commands == [tgalice.dialog.names.COMMANDS.EXIT]
+    assert resp.commands == [dialogic.dialog.names.COMMANDS.EXIT]
     assert resp.suggests == ['Ciao', 'Bye', 'Auf Wiedersehen']
 
 

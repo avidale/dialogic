@@ -1,9 +1,9 @@
 import pytest
 
-from tgalice import COMMANDS
-from tgalice.adapters import SalutAdapter
-from tgalice.dialog_connector import DialogConnector, SOURCES
-from tgalice.dialog_manager import BaseDialogManager, Response
+from dialogic import COMMANDS
+from dialogic.adapters import SalutAdapter
+from dialogic.dialog_connector import DialogConnector, SOURCES
+from dialogic.dialog_manager import BaseDialogManager, Response
 
 
 class Repeater(BaseDialogManager):

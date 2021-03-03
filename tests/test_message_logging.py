@@ -1,8 +1,8 @@
 import pytest
-import tgalice
+import dialogic
 import telebot
 
-from tgalice.storage.database_utils import get_mongo_or_mock
+from dialogic.storage.database_utils import get_mongo_or_mock
 
 
 @pytest.fixture
@@ -16,12 +16,12 @@ def test_text_logging_with_connector(empty_db):
     database = empty_db
     input_message = 'hello bot'
     expected_response = 'This is the default message'
-    dm = tgalice.dialog_manager.BaseDialogManager(default_message=expected_response)
-    connector = tgalice.dialog_connector.DialogConnector(
+    dm = dialogic.dialog_manager.BaseDialogManager(default_message=expected_response)
+    connector = dialogic.dialog_connector.DialogConnector(
         dialog_manager=dm,
-        log_storage=tgalice.storage.message_logging.MongoMessageLogger(database=database)
+        log_storage=dialogic.storage.message_logging.MongoMessageLogger(database=database)
     )
-    text_response = connector.respond(message=input_message, source=tgalice.SOURCES.TEXT)
+    text_response = connector.respond(message=input_message, source=dialogic.SOURCES.TEXT)
 
     collection = database.get_collection('message_logs')
     logs = list(collection.find())
@@ -31,8 +31,8 @@ def test_text_logging_with_connector(empty_db):
     assert first['text'] == input_message
     assert second['text'] == expected_response
 
-    assert first['source'] == tgalice.SOURCES.TEXT
-    assert second['source'] == tgalice.SOURCES.TEXT
+    assert first['source'] == dialogic.SOURCES.TEXT
+    assert second['source'] == dialogic.SOURCES.TEXT
 
     assert first['from_user'] is True
     assert second['from_user'] is False
@@ -76,12 +76,12 @@ def test_alice_logging_with_connector(empty_db):
     database = empty_db
     expected_response_text = 'This is the default message'
     input_message_text = input_message['request']['command']
-    dm = tgalice.dialog_manager.BaseDialogManager(default_message=expected_response_text)
-    connector = tgalice.dialog_connector.DialogConnector(
+    dm = dialogic.dialog_manager.BaseDialogManager(default_message=expected_response_text)
+    connector = dialogic.dialog_connector.DialogConnector(
         dialog_manager=dm,
-        log_storage=tgalice.storage.message_logging.MongoMessageLogger(database=database)
+        log_storage=dialogic.storage.message_logging.MongoMessageLogger(database=database)
     )
-    alice_response = connector.respond(message=input_message, source=tgalice.SOURCES.ALICE)
+    alice_response = connector.respond(message=input_message, source=dialogic.SOURCES.ALICE)
 
     collection = database.get_collection('message_logs')
     logs = list(collection.find())
@@ -91,8 +91,8 @@ def test_alice_logging_with_connector(empty_db):
     assert first['text'] == input_message_text
     assert second['text'] == expected_response_text
 
-    assert first['source'] == tgalice.SOURCES.ALICE
-    assert second['source'] == tgalice.SOURCES.ALICE
+    assert first['source'] == dialogic.SOURCES.ALICE
+    assert second['source'] == dialogic.SOURCES.ALICE
 
     assert first['from_user'] is True
     assert second['from_user'] is False
@@ -115,12 +115,12 @@ def test_tg_logging_with_connector(empty_db):
     )
     database = empty_db
     expected_response_text = 'This is the default message'
-    dm = tgalice.dialog_manager.BaseDialogManager(default_message=expected_response_text)
-    connector = tgalice.dialog_connector.DialogConnector(
+    dm = dialogic.dialog_manager.BaseDialogManager(default_message=expected_response_text)
+    connector = dialogic.dialog_connector.DialogConnector(
         dialog_manager=dm,
-        log_storage=tgalice.storage.message_logging.MongoMessageLogger(database=database)
+        log_storage=dialogic.storage.message_logging.MongoMessageLogger(database=database)
     )
-    tg_response = connector.respond(message=input_message, source=tgalice.SOURCES.TELEGRAM)
+    tg_response = connector.respond(message=input_message, source=dialogic.SOURCES.TELEGRAM)
 
     if 'reply_markup' in tg_response:
         tg_response['reply_markup'] = tg_response['reply_markup'].to_json()
@@ -133,8 +133,8 @@ def test_tg_logging_with_connector(empty_db):
     assert first['text'] == input_message_text
     assert second['text'] == expected_response_text
 
-    assert first['source'] == tgalice.SOURCES.TELEGRAM
-    assert second['source'] == tgalice.SOURCES.TELEGRAM
+    assert first['source'] == dialogic.SOURCES.TELEGRAM
+    assert second['source'] == dialogic.SOURCES.TELEGRAM
 
     assert first['from_user'] is True
     assert second['from_user'] is False
