@@ -5,7 +5,7 @@ with open("README_en.md", "r", encoding="utf-8") as fh:
 
 setuptools.setup(
     name="dialogic",
-    version="0.3.0",
+    version="0.3.1",
     author="David Dale",
     author_email="dale.david@mail.ru",
     description="Yet another common wrapper for Alice/Salut skills and Facebook/Telegram/VK bots",
