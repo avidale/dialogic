@@ -84,7 +84,7 @@ class Cascade:
         for item in self.handlers:
             # stages are matched strictly
             if item.stages:
-                if turn.stage not in item.stages:
+                if turn.prev_stage not in item.stages:
                     continue
             # intent scores are matched strictly and then sorted
             intent_score = -math.inf

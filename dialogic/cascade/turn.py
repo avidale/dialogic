@@ -2,6 +2,7 @@ import attr
 import logging
 
 from dialogic.dialog import Context, Response
+from dialogic.dialog.names import COMMANDS
 from dialogic.utils.content_manager import YandexImageAPI
 from dialogic.nlg.controls import Gallery as VisualGallery, BigImage
 from typing import Dict, List, Optional, Union, Tuple
@@ -59,6 +60,14 @@ class DialogTurn:
     @stage.setter
     def stage(self, value):
         self.user_object[self._STAGE] = value
+
+    @property
+    def prev_stage(self) -> Optional[str]:
+        return self.old_user_object.get(self._STAGE)
+
+    @prev_stage.setter
+    def prev_stage(self, value):
+        self.old_user_object[self._STAGE] = value
 
     def release_control(self):
         self.can_change_topic = True
@@ -130,3 +139,6 @@ class DialogTurn:
             elif isinstance(self.card, VisualGallery):
                 r.gallery = self.card
             return r
+
+    def exit(self):
+        self.commands.append(COMMANDS.EXIT)
