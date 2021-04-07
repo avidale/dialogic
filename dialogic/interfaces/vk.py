@@ -13,7 +13,10 @@ VK_API_URL = 'https://api.vk.com/method/'
 
 
 class VKBot:
-    def __init__(self, token, group_id, api_version='5.103', polling_freq=5, polling_wait=25, webhook_key=None):
+    def __init__(
+            self, token, group_id, api_version='5.103', polling_freq=5, polling_wait=25, webhook_key=None,
+            dont_parse_links=True,
+    ):
         self.token = token
         self.group_id = group_id
         self.api_version = api_version
@@ -24,6 +27,7 @@ class VKBot:
         self.polling_freq = polling_freq
         self.polling_wait = polling_wait
         self.webhook_key = webhook_key
+        self.dont_parse_links = dont_parse_links
 
     def polling(self):
         """ Start long polling with wait timeout self.polling_wait and interval self.polling_freq """
@@ -190,6 +194,8 @@ class VKBot:
             extras['keyboard'] = keyboard
         if reply_to is not None:
             extras['reply_to'] = reply_to
+        if self.dont_parse_links is not None:
+            extras['dont_parse_links'] = int(self.dont_parse_links)
         result = self._request_api(
             'messages.send',
             request_method='POST',
