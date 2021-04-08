@@ -9,7 +9,7 @@ def test_send_message(mock_post: MagicMock):
     mock_post.return_value.json = lambda: {}
 
     bot = VKBot(token='12345', group_id=12345)
-    bot.send_message(user_id=666, text='hello', keyboard={'buttons': [[{'action': {'type': 'text', 'label': 'yay'}}]]})
+    bot.send_message(peer_id=666, text='hello', keyboard={'buttons': [[{'action': {'type': 'text', 'label': 'yay'}}]]})
     assert mock_post.called
     args, kwargs = mock_post.call_args
     assert kwargs['url'].endswith('messages.send')

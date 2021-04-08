@@ -21,7 +21,7 @@ bot = VKBot(
 @bot.message_handler()
 def respond(message: VKMessage):
     bot.send_message(
-        user_id=message.user_id,
+        peer_id=message.user_id,
         text='Вы написали {}'.format(message.text),
         keyboard={'buttons': [[{'action': {'type': 'text', 'label': 'ок'}}]]},
     )

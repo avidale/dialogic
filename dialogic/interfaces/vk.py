@@ -185,8 +185,10 @@ class VKBot:
             return new_handler
         return decorator
 
-    def send_message(self, user_id, text, keyboard=None, reply_to=None):
+    def send_message(self, peer_id=None, user_id=None, text='-', keyboard=None, reply_to=None):
         """ Send the message with the specified text to the specified user. """
+        if peer_id is None:
+            peer_id = user_id
         extras = {}
         if keyboard is not None:
             if not isinstance(keyboard, str):
@@ -199,7 +201,7 @@ class VKBot:
         result = self._request_api(
             'messages.send',
             request_method='POST',
-            user_id=user_id,
+            user_id=peer_id,
             message=text,
             random_id=random.randint(0, 1_000_000_000_000_000_000),
             group_id=None,  # pass it explicitly, to avoid confusion with user_id
