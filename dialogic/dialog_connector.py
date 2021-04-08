@@ -87,7 +87,7 @@ class DialogConnector:
             logged = self.adapters[source].serialize_response(data=result, context=context, response=response)
             if logged:
                 self.log_storage.log_data(data=logged, context=context, response=response)
-        return context, result, result
+        return context, response, result
 
     def make_context(self, message, source=None):
         if source is None:
