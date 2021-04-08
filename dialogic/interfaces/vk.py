@@ -201,7 +201,7 @@ class VKBot:
         result = self._request_api(
             'messages.send',
             request_method='POST',
-            user_id=peer_id,
+            peer_id=peer_id,
             message=text,
             random_id=random.randint(0, 1_000_000_000_000_000_000),
             group_id=None,  # pass it explicitly, to avoid confusion with user_id
@@ -293,4 +293,9 @@ class VKMessage:
         return cls(user_id=user_id, text=text, peer_id=peer_id, action=action, data=message)
 
     def to_json(self):
-        return {'text': self.text, 'user_id': self.user_id}
+        return {
+            'text': self.text,
+            'user_id': self.user_id,
+            'peer_id': self.peer_id,
+            'action': self.action,
+        }

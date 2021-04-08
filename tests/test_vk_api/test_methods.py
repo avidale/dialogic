@@ -13,7 +13,7 @@ def test_send_message(mock_post: MagicMock):
     assert mock_post.called
     args, kwargs = mock_post.call_args
     assert kwargs['url'].endswith('messages.send')
-    assert kwargs['data']['user_id'] == 666
+    assert kwargs['data']['peer_id'] == 666
     assert kwargs['data']['message'] == 'hello'
     assert kwargs['data']['access_token'] == '12345'
     assert 'group_id' not in kwargs['data']
