@@ -159,7 +159,7 @@ class FlaskServer:
             logger.info('Skipping message to vk (no response): {}'.format(response))
             return
         self.vk_bot.send_message(
-            user_id=message.user_id,
+            user_id=message.peer_id or message.user_id,
             **result
         )
 
