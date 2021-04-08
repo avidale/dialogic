@@ -138,21 +138,30 @@ class FlaskServer:
             return
         self._processed_telegram_ids.add(message.message_id)
         # todo: cleanup old ids from _processed_telegram_ids
-        response = self.connector.respond(message, source=SOURCES.TELEGRAM)
-        telegram_response = self.bot.reply_to(message, **response)
-        multimedia = response.pop('multimedia', [])
+        ctx, r, result = self.connector.full_respond(message, source=SOURCES.TELEGRAM)
+        if r.no_response:
+            logger.info('Skipping message to tg (no response): {}'.format(r))
+            return
+        telegram_response = self.bot.reply_to(message, **result)
+        multimedia = result.pop('multimedia', [])
         for item in multimedia:
             if item['type'] == 'photo':
-                self.bot.send_photo(message.chat.id, photo=item['content'], **response)
+                self.bot.send_photo(message.chat.id, photo=item['content'], **result)
             if item['type'] == 'document':
-                self.bot.send_document(message.chat.id, data=item['content'], **response)
+                self.bot.send_document(message.chat.id, data=item['content'], **result)
             elif item['type'] == 'audio':
-                self.bot.send_audio(message.chat.id, audio=item['content'], **response)
+                self.bot.send_audio(message.chat.id, audio=item['content'], **result)
         logger.info('Sent a response to Telegram: {}'.format(message))
 
     def vk_response(self, message: VKMessage):
-        response = self.connector.respond(message, source=SOURCES.VK)
-        self.vk_bot.send_message(user_id=message.user_id, **response)
+        ctx, response, result = self.connector.full_respond(message, source=SOURCES.VK)
+        if response.no_response:
+            logger.info('Skipping message to vk (no response): {}'.format(response))
+            return
+        self.vk_bot.send_message(
+            user_id=message.user_id,
+            **result
+        )
 
     def get_tg_message(self):
         self.bot.process_new_updates([telebot.types.Update.de_json(request.stream.read().decode("utf-8"))])
@@ -198,9 +207,12 @@ class FlaskServer:
             for message in messaging:
                 if message.get('message') or message.get('postback'):
                     recipient_id = message['sender']['id']
-                    response = self.connector.respond(message, source=SOURCES.FACEBOOK)
+                    ctx, response, result = self.connector.full_respond(message, source=SOURCES.FACEBOOK)
+                    if response.no_response:
+                        logger.info('Skipping message to facebook (no response): {}'.format(response))
+                        continue
                     logger.info('Sending message to Facebook: {}'.format(response))
-                    self.facebook_bot.send_message(recipient_id, response)
+                    self.facebook_bot.send_message(recipient_id, result)
         return "Message Processed"
 
     def run_server(self, host="0.0.0.0", port=None, use_ngrok=False, debug=False):

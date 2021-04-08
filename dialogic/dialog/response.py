@@ -3,15 +3,26 @@ from dialogic.dialog.names import COMMANDS
 
 
 class Response:
-    def __init__(self, text,
-                 suggests=None, commands=None, voice=None, links=None,
-                 image_id=None, image_url=None, sound_url=None,
-                 gallery=None, image=None,
-                 user_object=None, raw_response=None,
-                 confidence=0.5, label=None,
-                 rich_text=None,
-                 show_item_meta=None,
-                 ):
+    def __init__(
+            self,
+            text,
+            suggests=None,
+            commands=None,
+            voice=None,
+            links=None,
+            image_id=None,
+            image_url=None,
+            sound_url=None,
+            gallery=None,
+            image=None,
+            user_object=None,
+            raw_response=None,
+            confidence=0.5,
+            label=None,
+            rich_text=None,
+            show_item_meta=None,
+            no_response=False,  # whether the response (in messenger) should be emtpy
+    ):
         self.text = text
         self.suggests = suggests or []
         self.commands = commands or []
@@ -31,6 +42,7 @@ class Response:
         if rich_text:
             self.set_text(rich_text)
         self.show_item_meta = show_item_meta
+        self.no_response = no_response
 
     @property
     def user_object(self):

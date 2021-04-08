@@ -1,6 +1,6 @@
 import copy
 
-from typing import Optional, Dict
+from typing import Optional, Dict, Any, Tuple
 
 from .storage.message_logging import BaseMessageLogger
 
@@ -61,7 +61,11 @@ class DialogConnector:
     def add_adapter(self, name: str, adapter: BaseAdapter):
         self.adapters[name] = adapter
 
-    def respond(self, message, source=None):
+    def respond(self, message, source=None) -> Any:
+        ctx, resp, result = self.full_respond(message=message, source=source)
+        return result
+
+    def full_respond(self, message, source=None) -> Tuple[Context, Response, Any]:
         adapter = self.adapters.get(source)
         # todo: support different triggers - not only messages, but calendar events as well
         context = self.make_context(message=message, source=source)
@@ -83,7 +87,7 @@ class DialogConnector:
             logged = self.adapters[source].serialize_response(data=result, context=context, response=response)
             if logged:
                 self.log_storage.log_data(data=logged, context=context, response=response)
-        return result
+        return context, result, result
 
     def make_context(self, message, source=None):
         if source is None:

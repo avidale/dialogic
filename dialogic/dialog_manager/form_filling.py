@@ -30,6 +30,7 @@ class FieldConfig:
         self.id = idx
         self.name = obj.get('name', 'field_{}'.format(idx))
         self.question = obj.get('question') or obj.get('q')
+        self.repeated_question = obj.get('repeated_question')
         assert self.question, f'The question should be non-empty, but it is absent in the form {obj}!'
         self.validate_message = obj.get('validate_message')
         self.options = [FieldOption(o) for o in (obj.get('options') or [])]
@@ -107,6 +108,7 @@ class FormFillingDialogManager(CascadableDialogManager):
         user_object = ctx.user_object or {}
         normalized = basic_nlu.fast_normalize(ctx.message_text)
         form = user_object.get('forms', {}).get(self.config.form_name, {})
+        form['name'] = self.config.form_name
         if form.get('is_active'):
             if self.config.exit_regexp and re.match(self.config.exit_regexp, normalized):
                 form['is_active'] = False
@@ -147,6 +149,7 @@ class FormFillingDialogManager(CascadableDialogManager):
         user_object['forms'][self.config.form_name] = {
             'fields': {},
             'is_active': True,
+            'name': self.config.form_name,
             'next_question': -1
         }
         form = user_object['forms'][self.config.form_name]
@@ -175,6 +178,8 @@ class FormFillingDialogManager(CascadableDialogManager):
             suggests = options[:]
             if the_question.multivalued and prev_value:
                 suggests = [s for s in suggests if s not in prev_value]
+                if the_question.repeated_question and not reask:
+                    response = the_question.repeated_question
         elif the_question.suggests:
             suggests = the_question.suggests[:]
         else:

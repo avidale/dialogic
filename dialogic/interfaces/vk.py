@@ -270,9 +270,12 @@ class VKMessage:
     when it comes from long poll, it looks like the old version of API, so the format is different
     # todo: add message_id, attachments, date, etc.
     """
-    def __init__(self, user_id, text):
+    def __init__(self, user_id, text, peer_id, action=None, data=None):
         self.user_id = user_id
+        self.peer_id = peer_id
         self.text = text
+        self.action = action
+        self.data = data
 
     @classmethod
     def from_json(cls, data):
@@ -283,7 +286,9 @@ class VKMessage:
 
         text = message.get('body') or message.get('text') or ''
         user_id = message.get('user_id') or message.get('from_id')
-        return cls(user_id=user_id, text=text)
+        peer_id = message.get('peer_id') or user_id
+        action = message.get('action')
+        return cls(user_id=user_id, text=text, peer_id=peer_id, action=action, data=message)
 
     def to_json(self):
         return {'text': self.text, 'user_id': self.user_id}
