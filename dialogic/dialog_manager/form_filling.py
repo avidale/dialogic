@@ -38,6 +38,7 @@ class FieldConfig:
         self.exit_option = FieldOption.from_data(obj.get('exit_option'))
         self.suggests = obj.get('suggests')
         self.next = obj.get('next')
+        self.validate_raw = obj.get('validate_raw', False)
 
         if self.options is not None:
             self.matcher = matchers.make_matcher(**obj.get('matching', {'key': 'levenshtein', 'threshold': 0.8}))
@@ -92,6 +93,7 @@ class FormConfig:
         self.exit_suggest = exit_block.get('suggest')
 
         self.finish_message = self._cfg.get('finish', {}).get('message')
+        self.finish_suggests = self._cfg.get('finish', {}).get('suggests')
 
         self.fields: List[FieldConfig] = [FieldConfig(obj, idx=i) for i, obj in enumerate(self._cfg['fields'])]
         self.name2field: Dict[str, FieldConfig] = {c.name: c for c in self.fields}
@@ -106,7 +108,8 @@ class FormFillingDialogManager(CascadableDialogManager):
 
     def try_to_respond(self, ctx: Context):
         user_object = ctx.user_object or {}
-        normalized = basic_nlu.fast_normalize(ctx.message_text)
+        raw = ctx.message_text
+        normalized = basic_nlu.fast_normalize(raw)
         form = user_object.get('forms', {}).get(self.config.form_name, {})
         form['name'] = self.config.form_name
         if form.get('is_active'):
@@ -130,7 +133,11 @@ class FormFillingDialogManager(CascadableDialogManager):
                     result = self.handle_completed_form(form, user_object, ctx)
                     if result is not None:
                         return result
-                    return Response(text=self.config.finish_message, user_object=user_object)
+                    return Response(
+                        text=self.config.finish_message,
+                        user_object=user_object,
+                        suggests=self.config.finish_suggests or []
+                    )
                 form['next_question'] = next_question_id
                 return self.ask_question(next_question_id, user_object=user_object, reask=False, form=form)
             else:
@@ -193,15 +200,22 @@ class FormFillingDialogManager(CascadableDialogManager):
         if question_id == -1:
             return message_text
         the_question = self.config.fields[question_id]
-        normalized_text = basic_nlu.fast_normalize(message_text)
+
+        if the_question.validate_raw:
+            normalized_text = message_text
+        else:
+            normalized_text = basic_nlu.fast_normalize(message_text)
+
         if the_question.all_options:
             winner_label, best_score = the_question.matcher.match(message_text)
             return winner_label
+
         if the_question.validate_regexp is not None:
             if re.match(the_question.validate_regexp, normalized_text):
                 return message_text
             else:
                 return None
+
         return message_text
 
     def handle_completed_form(self, form, user_object, ctx):
