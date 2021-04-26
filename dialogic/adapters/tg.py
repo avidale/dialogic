@@ -59,18 +59,18 @@ class TelegramAdapter(BaseAdapter):
 
     def serialize_context(self, context: Context, data=None, **kwargs) -> Optional[SerializedMessage]:
         message = context.raw_message
-        if message.reply_to_message is not None:
+        if message and message.reply_to_message is not None:
             kwargs['reply_to_id'] = message.reply_to_message.message_id
-        kwargs['message_id'] = message.message_id
-        kwargs['username'] = message.chat.username
+        kwargs['message_id'] = message and message.message_id
+        kwargs['username'] = message and message.chat.username
         serializable_message = {'message': str(message)}
         return super(TelegramAdapter, self).serialize_context(context=context, data=serializable_message, **kwargs)
 
     def serialize_response(self, data, context: Context, response: Response, **kwargs) -> Optional[SerializedMessage]:
         data = copy.deepcopy(data)
         message = context.raw_message
-        kwargs['reply_to_id'] = message.message_id
-        kwargs['username'] = message.chat.username
+        kwargs['reply_to_id'] = message and message.message_id
+        kwargs['username'] = message and message.chat.username
         # todo: maybe somehow get message_id for output messages
         if 'reply_markup' in data:
             data['reply_markup'] = data['reply_markup'].to_json()

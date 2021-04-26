@@ -137,7 +137,7 @@ class AliceAdapter(BaseAdapter):
         """ Return native dialog state if it is possible"""
         if not self.native_state:
             return
-        message = context.raw_message
+        message = context.raw_message or {}
         state = message.get('state', {})
 
         if self.native_state == 'session':

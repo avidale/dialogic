@@ -73,5 +73,5 @@ class VkAdapter(BaseAdapter):
         return result
 
     def serialize_context(self, context: Context, data=None, **kwargs) -> Optional[SerializedMessage]:
-        serializable_message = {'message': context.raw_message.to_json()}
+        serializable_message = {'message': context.raw_message and context.raw_message.to_json()}
         return super(VkAdapter, self).serialize_context(context=context, data=serializable_message, **kwargs)
