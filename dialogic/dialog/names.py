@@ -16,6 +16,7 @@ class COMMANDS:
 
 class REQUEST_TYPES:
     SIMPLE_UTTERANCE = 'SimpleUtterance'
+    PUSH = 'push'
     BUTTON_PRESSED = 'ButtonPressed'
     SHOW_PULL = 'Show.Pull'
     GEOLOCATION_ALLOWED = 'Geolocation.Allowed'

@@ -1,5 +1,3 @@
-from __future__ import print_function
-
 import argparse
 import json
 import logging
@@ -142,15 +140,22 @@ class FlaskServer:
         if r.no_response:
             logger.info('Skipping message to tg (no response): {}'.format(r))
             return
-        telegram_response = self.bot.reply_to(message, **result)
+        self.tg_send(result=result, chat_id=message.chat.id, message=message)
+
+    def tg_send(self, result, chat_id, message=None):
+        if message:
+            telegram_response = self.bot.reply_to(message, **result)
+        else:
+            telegram_response = self.bot.send_message(chat_id, **result)
+
         multimedia = result.pop('multimedia', [])
         for item in multimedia:
             if item['type'] == 'photo':
-                self.bot.send_photo(message.chat.id, photo=item['content'], **result)
+                self.bot.send_photo(chat_id, photo=item['content'], **result)
             if item['type'] == 'document':
-                self.bot.send_document(message.chat.id, data=item['content'], **result)
+                self.bot.send_document(chat_id, data=item['content'], **result)
             elif item['type'] == 'audio':
-                self.bot.send_audio(message.chat.id, audio=item['content'], **result)
+                self.bot.send_audio(chat_id, audio=item['content'], **result)
         logger.info('Sent a response to Telegram: {}'.format(message))
 
     def vk_response(self, message: VKMessage):
@@ -214,6 +219,18 @@ class FlaskServer:
                     logger.info('Sending message to Facebook: {}'.format(response))
                     self.facebook_bot.send_message(recipient_id, result)
         return "Message Processed"
+
+    def push(self, result, source, user_id):
+        if source == SOURCES.TELEGRAM:
+            self.tg_send(result=result, chat_id=user_id)
+        elif source == SOURCES.VK:
+            self.vk_bot.send_message(peer_id=user_id, **result)
+        elif source == SOURCES.FACEBOOK:
+            self.facebook_bot.send_message(user_id, result)
+        elif source == SOURCES.TEXT:
+            print(colorama.Fore.BLUE + str(result) + colorama.Style.RESET_ALL)
+        else:
+            logger.warning(f'The source {source} does not support pushing messages!')
 
     def run_server(self, host="0.0.0.0", port=None, use_ngrok=False, debug=False):
         # todo: maybe, run a foreign app instead (attach own blueprint to it)

@@ -66,9 +66,12 @@ class DialogConnector:
         return result
 
     def full_respond(self, message, source=None) -> Tuple[Context, Response, Any]:
-        adapter = self.adapters.get(source)
-        # todo: support different triggers - not only messages, but calendar events as well
         context = self.make_context(message=message, source=source)
+        return self.respond_to_context(context=context)
+
+    def respond_to_context(self, context: Context) -> Tuple[Context, Response, Any]:
+        source = context.source
+        adapter = self.adapters.get(source)
         old_user_object = copy.deepcopy(context.user_object)
         if adapter and self.log_storage is not None:
             logged = adapter.serialize_context(context=context)
