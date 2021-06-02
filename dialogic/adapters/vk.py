@@ -54,7 +54,8 @@ class VkAdapter(BaseAdapter):
             for i, button in enumerate(buttons):
                 if self.suggest_cols == 'auto':
                     extra_width = len(button['action']['label']) + self.suggest_margin * 2
-                    if len(rows) == 0 or row_width > 0 and row_width + extra_width > self.suggest_screen or len(rows[-1]) >= self.suggest_cols:
+                    if len(rows) == 0 or row_width > 0 and row_width + extra_width > self.suggest_screen \
+                            or len(rows[-1]) >= self.suggest_max_cols:
                         rows.append([])
                         row_width = extra_width
                     else:
