@@ -11,7 +11,7 @@ class VkAdapter(BaseAdapter):
 
     def __init__(
             self,
-            suggest_cols=1, suggest_screen=32, suggest_margin=1, suggest_max_len=40,
+            suggest_cols='auto', suggest_screen=32, suggest_margin=1, suggest_max_len=40,
             suggest_max_cols=5, suggest_max_rows=10,
             **kwargs
     ):
