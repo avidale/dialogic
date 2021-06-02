@@ -185,7 +185,10 @@ class VKBot:
             return new_handler
         return decorator
 
-    def send_message(self, peer_id=None, user_id=None, text='-', keyboard=None, reply_to=None):
+    def send_message(
+            self, peer_id=None, user_id=None, text='-', keyboard=None, reply_to=None,
+            attachment_filename=None,
+    ):
         """ Send the message with the specified text to the specified user. """
         if peer_id is None:
             peer_id = user_id
@@ -198,6 +201,10 @@ class VKBot:
             extras['reply_to'] = reply_to
         if self.dont_parse_links is not None:
             extras['dont_parse_links'] = int(self.dont_parse_links)
+
+        if attachment_filename is not None:
+            pass
+
         result = self._request_api(
             'messages.send',
             request_method='POST',
@@ -227,6 +234,18 @@ class VKBot:
             result = requests.post(url=url, data=payload)
         self._fail_on_bad_response(method, result)
         return result.json()
+
+    def upload_file(self, peer_id, file_type='doc'):
+        """
+        Upload a file
+        https://vk.com/dev/upload_files_2?f=10.%2BЗагрузка%2Bдокументов
+        """
+        j = self._request_api('docs.getMessagesUploadServer', peer_id=peer_id, type=file_type)['response']
+        upload_url = j.get('upload_url')
+        if not upload_url:
+            return
+        # todo: uploade the file
+        # todo: save the file
 
     @staticmethod
     def _fail_on_bad_response(request_goal, response):
