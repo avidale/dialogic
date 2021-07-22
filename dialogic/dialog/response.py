@@ -23,6 +23,8 @@ class Response:
             show_item_meta=None,
             no_response=False,  # whether the response (in messenger) should be emtpy
             attachment_filename=None,
+            extra_directives=None,
+            should_listen=None,
     ):
         self.text = text
         self.suggests = suggests or []
@@ -45,6 +47,8 @@ class Response:
         self.show_item_meta = show_item_meta
         self.no_response = no_response
         self.attachment_filename = attachment_filename
+        self.extra_directives = extra_directives  # a dictionary of directives for Alice
+        self.should_listen = should_listen
 
     @property
     def user_object(self):

@@ -62,6 +62,8 @@ class AliceAdapter(BaseAdapter):
             for command in response.commands:
                 if command == COMMANDS.REQUEST_GEOLOCATION:
                     directives[COMMANDS.REQUEST_GEOLOCATION] = {}
+        if response.extra_directives is not None:
+            directives.update(response.extra_directives)
 
         result = {
             "version": original_message['version'],
@@ -70,6 +72,8 @@ class AliceAdapter(BaseAdapter):
                 "text": response.text
             }
         }
+        if response.should_listen is not None:
+            result['response']['should_listen'] = response.should_listen
         if self.native_state and response.updated_user_object:
             if self.native_state == 'session':
                 result['session_state'] = response.updated_user_object

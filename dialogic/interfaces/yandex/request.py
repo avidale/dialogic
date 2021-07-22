@@ -31,6 +31,10 @@ class Meta(FreeSerializeable):
     def has_account_linking(self) -> bool:
         return self.interfaces and 'account_linking' in self.interfaces
 
+    @property
+    def has_audio_player(self) -> bool:
+        return self.interfaces and 'audio_player' in self.interfaces
+
 
 @attr.s
 class Span(FreeSerializeable):
@@ -85,6 +89,7 @@ class Request(FreeSerializeable):
     payload = attr.ib(factory=dict)
     nlu: Optional[NLU] = attr.ib(converter=NLU.from_dict, default=None)
     show_type: Optional[str] = attr.ib(default=None)
+    error: Optional[Dict] = attr.ib(default=None)
 
 
 class User(FreeSerializeable):
@@ -121,6 +126,7 @@ class State(FreeSerializeable):
     session: Optional[Dict] = attr.ib(default=None)
     user: Optional[Dict] = attr.ib(default=None)
     application: Optional[Dict] = attr.ib(default=None)
+    audio_player: Optional[Dict] = attr.ib(default=None)
 
 
 @attr.s
