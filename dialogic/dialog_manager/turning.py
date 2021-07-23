@@ -57,6 +57,7 @@ class TurnDialogManager(CascadableDialogManager):
         handler_name = self.cascade(turn)
         logger.debug(f"Final handler: {handler_name}")
         response = turn.make_response()
+        response.handler = handler_name
         self.postprocess_response(response=response, turn=turn)
         logger.debug(f'DM response took {time.time() - t} seconds')
         return response

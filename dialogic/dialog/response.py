@@ -19,6 +19,7 @@ class Response:
             raw_response=None,
             confidence=0.5,
             label=None,
+            handler=None,
             rich_text=None,
             show_item_meta=None,
             no_response=False,  # whether the response (in messenger) should be emtpy
@@ -41,6 +42,7 @@ class Response:
         self.image = image
         assert self.image is None or isinstance(self.image, controls.BigImage)
         self.raw_response = raw_response
+        self.handler = handler
         self.label = label
         if rich_text:
             self.set_text(rich_text)

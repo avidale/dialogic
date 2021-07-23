@@ -50,6 +50,8 @@ class BaseMessageLogger:
             return
         if response is not None and response.label is not None:
             data.kwargs['label'] = response.label
+        if response is not None and response.handler is not None:
+            data.kwargs['handler'] = response.handler
         if self.should_ignore_message(result=data, context=context, response=response):
             return
         self.save_a_message(data.to_dict())

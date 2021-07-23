@@ -22,6 +22,7 @@ class SerializedMessage:
             data        (original message in Alice)
             label       (something like intent)
             request_id  (this id the same for request and response, useful for joining logs)
+            handler     (name of the function that has produced the response)
         """
 
     def to_dict(self):
