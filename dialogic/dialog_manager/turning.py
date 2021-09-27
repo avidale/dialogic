@@ -3,11 +3,13 @@ import time
 import yaml
 from typing import Union, Type, Tuple, Dict
 
+from ..nlu.regex_expander import load_intents_with_replacement
 from ..interfaces.yandex import extract_yandex_forms
 from ..nlu.regex_utils import match_forms
 from dialogic.cascade import DialogTurn
 from dialogic.dialog import Context, Response
 from dialogic.dialog_manager import CascadableDialogManager
+from dialogic.nlu import basic_nlu
 from dialogic.nlu.basic_nlu import fast_normalize
 from dialogic.nlu.matchers import TFIDFMatcher, TextNormalization, make_matcher_with_regex
 
@@ -15,30 +17,49 @@ logger = logging.getLogger(__name__)
 
 
 class TurnDialogManager(CascadableDialogManager):
+    TURN_CLS = DialogTurn
+
     def __init__(
             self,
             cascade,
             intents_file=None,
-            turn_cls: Type[DialogTurn] = DialogTurn,
+            expressions_file=None,
+            matcher_threshold=0.8,
+            add_basic_nlu=True,
+            turn_cls: Type[DialogTurn] = None,
             **kwargs
     ):
         super(TurnDialogManager, self).__init__(**kwargs)
 
         self.cascade = cascade
-        self.turn_cls: Type[DialogTurn] = turn_cls
+        self.turn_cls: Type[DialogTurn] = turn_cls or self.TURN_CLS
 
         self.intents_file = intents_file
+        self.expressions_file = expressions_file
         self.intents = {}
         self.intent_matcher = None
+        self.matcher_threshold = matcher_threshold
+        self.add_basic_nlu = add_basic_nlu
+
         if intents_file:
             self.load_intents(intents_file=intents_file)
 
     def load_intents(self, intents_file=None):
-        with open(intents_file, 'r', encoding='utf-8') as f:
-            self.intents = yaml.safe_load(f)
+        if self.expressions_file and self.intents_file:
+            self.intents = load_intents_with_replacement(
+                intents_fn='texts/intents.yaml',
+                expressions_fn='texts/expressions.yaml',
+            )
+        elif self.intents_file:
+            with open(intents_file, 'r', encoding='utf-8') as f:
+                self.intents = yaml.safe_load(f)
+        else:
+            return
 
         self.intent_matcher = make_matcher_with_regex(
-            base_matcher=TFIDFMatcher(text_normalization=TextNormalization.FAST_LEMMATIZE),
+            base_matcher=TFIDFMatcher(
+                text_normalization=TextNormalization.FAST_LEMMATIZE, threshold=self.matcher_threshold
+            ),
             intents=self.intents,
         )
 
@@ -74,6 +95,15 @@ class TurnDialogManager(CascadableDialogManager):
             forms.update(ya_forms)
             for intent_name in ya_forms:
                 intents[intent_name] = 1
+
+        if self.add_basic_nlu:
+            if basic_nlu.like_help(ctx.message_text):
+                intents['help'] = max(intents.get('help', 0), 0.9)
+            if basic_nlu.like_yes(ctx.message_text):
+                intents['yes'] = max(intents.get('yes', 0), 0.9)
+            if basic_nlu.like_no(ctx.message_text):
+                intents['no'] = max(intents.get('no', 0), 0.9)
+
         return text, intents, forms
 
     def preprocess_context(self, ctx: Context):

@@ -49,6 +49,17 @@ class BaseMatcher:
     def fit(self, texts, labels):
         raise NotImplementedError()
 
+    def fit_dict(self, label2texts):
+        x = []
+        y = []
+        for label, texts in label2texts.items():
+            if isinstance(texts, str):
+                texts = [texts]
+            for text in texts:
+                x.append(text)
+                y.append(label)
+        return self.fit(x, y)
+
     def get_threshold(self, label):
         return self.thresholds.get(label, self.threshold)
 

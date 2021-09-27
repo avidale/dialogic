@@ -29,6 +29,10 @@ class DialogTurn:
     commands: List = attr.ib(factory=list)
     card: Optional[Union[VisualGallery, BigImage]] = attr.ib(default=None)
     image_url: Optional[str] = attr.ib(default=None)
+    image_id: str = attr.ib(default=None)
+    show_item_meta = attr.ib(default=None)
+    extra_directives: Optional[Dict] = attr.ib(default=None)
+    should_listen: Optional[bool] = attr.ib(default=None)
     # These properties are helpers
     image_manager: Optional[YandexImageAPI] = attr.ib(default=None)
     can_change_topic: bool = attr.ib(default=False)
@@ -133,11 +137,16 @@ class DialogTurn:
                 suggests=self.suggests,
                 commands=self.commands,
                 image_url=self.image_url,
+                show_item_meta=self.show_item_meta,
+                extra_directives=self.extra_directives,
+                should_listen=self.should_listen,
             )
             if isinstance(self.card, BigImage):
                 r.image = self.card
             elif isinstance(self.card, VisualGallery):
                 r.gallery = self.card
+            if self.image_id:
+                r.image_id = self.image_id
             return r
 
     def exit(self):
