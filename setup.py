@@ -10,7 +10,7 @@ if os.path.exists("README_en.md"):
 
 setuptools.setup(
     name="dialogic",
-    version="0.3.15",
+    version="0.3.16",
     author="David Dale",
     author_email="dale.david@mail.ru",
     description=description,
