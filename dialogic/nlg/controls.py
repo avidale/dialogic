@@ -157,3 +157,20 @@ class Gallery:
         if self.footer is not None:
             result['footer'] = self.footer.to_dict()
         return result
+
+
+class ImageGallery:
+    def __init__(self, items=None):
+        if not isinstance(items, Iterable):
+            raise ValueError('ImageGallery items should be an Iterable, got {}'.format(type(items)))
+        if items is None:
+            items = []
+        if len(items) < 1 or len(items) > 10:
+            raise ValueError('ImageGallery should contain 1-10 items, got {}'.format(len(items)))
+        self.items = items
+
+    def to_dict(self):
+        result = OrderedDict()
+        result['type'] = 'ImageGallery'
+        result['items'] = [item.to_dict() for item in self.items]
+        return result

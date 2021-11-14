@@ -90,6 +90,31 @@ class BaseMatcher:
         return result
 
 
+class ExtendableMatcher(BaseMatcher):
+    """ Mixin for matchers that support partial_fit """
+    def fit(self, texts, labels):
+        self.reset()
+        self.partial_fit(texts, labels)
+        return self
+
+    def reset(self):
+        raise NotImplementedError()
+
+    def partial_fit(self, texts, labels):
+        raise NotImplementedError()
+
+    def partial_fit_dict(self, label2texts):
+        x = []
+        y = []
+        for label, texts in label2texts.items():
+            if isinstance(texts, str):
+                texts = [texts]
+            for text in texts:
+                x.append(text)
+                y.append(label)
+        return self.partial_fit(x, y)
+
+
 class AggregationMatcher(BaseMatcher):
     def __init__(self, matchers, **kwargs):
         super(AggregationMatcher, self).__init__(**kwargs)
@@ -222,7 +247,7 @@ class RegexMatcher(BaseMatcher):
         return scores, labels
 
 
-class PairwiseMatcher(BaseMatcher):
+class PairwiseMatcher(ExtendableMatcher):
     """
     Classify text using 1-nearest neighbor by some similarity metric.
     This is an abstract class; its descendants should implement the specific metric to compare preprocessed texts.
@@ -265,9 +290,14 @@ class PairwiseMatcher(BaseMatcher):
     def compare(self, one, another):
         raise NotImplementedError()
 
-    def fit(self, texts, labels):
-        self._texts = [self.preprocess(text) for text in texts]
-        self._labels = labels
+    def partial_fit(self, texts, labels):
+        self._texts.extend([self.preprocess(text) for text in texts])
+        self._labels.extend(labels)
+        return self
+
+    def reset(self):
+        self._texts = []
+        self._labels = []
         return self
 
     def get_scores(self, text):

@@ -75,14 +75,15 @@ class ItemsList(Card):
 
 @attr.s
 class ImageGalleryItem(Serializeable):
-    image_id: str = attr.ib(default=None)
+    image_id: str = attr.ib(default=None)  # 328 x 480
     title: str = attr.ib(default=None)
+    button: Optional[CardButton] = attr.ib(default=None, converter=CardButton.from_dict)
 
 
 @attr.s
 class ImageGallery(Card):
     type: str = attr.ib(default=CARD_TYPES.IMAGE_GALLERY, init=False)
-    items: List[ImageGalleryItem] = attr.ib(converter=list_converter(ImageGalleryItem), factory=list)
+    items: List[ImageGalleryItem] = attr.ib(converter=list_converter(ImageGalleryItem), factory=list)  # 1 to 10 items
 
 
 @attr.s
