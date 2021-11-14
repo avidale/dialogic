@@ -13,6 +13,7 @@ class VkAdapter(BaseAdapter):
             self,
             suggest_cols='auto', suggest_screen=32, suggest_margin=1, suggest_max_len=40,
             suggest_max_cols=5, suggest_max_rows=10,
+            suggest_add_payload=False,
             **kwargs
     ):
         super(VkAdapter, self).__init__(**kwargs)
@@ -22,6 +23,7 @@ class VkAdapter(BaseAdapter):
         self.suggest_max_len = suggest_max_len
         self.suggest_max_cols = suggest_max_cols
         self.suggest_max_rows = suggest_max_rows
+        self.suggest_add_payload = suggest_add_payload
 
     def make_context(self, message, **kwargs) -> Context:
         uid = self.SOURCE + '__' + str(message.user_id)
@@ -47,7 +49,10 @@ class VkAdapter(BaseAdapter):
             for i, link in enumerate(response.links):
                 buttons.append({'action': {'type': 'open_link', 'label': link['title'], 'link': link['url']}})
             for i, suggest in enumerate(response.suggests):
-                buttons.append({'action': {'type': 'text', 'label': suggest}})
+                a = {'type': 'text', 'label': suggest}
+                if self.suggest_add_payload:
+                    a['payload'] = suggest
+                buttons.append({'action': a})
 
             rows = []
             row_width = 0
@@ -69,7 +74,7 @@ class VkAdapter(BaseAdapter):
                 for button in row:
                     label = button['action']['label']
                     if len(label) > self.suggest_max_len:
-                        button['action']['label'] = label[:(self.suggest_max_len - 3)] + '...'
+                        button['action']['label'] = label[:(self.suggest_max_len - 1)] + '…'
 
             if self.suggest_max_rows:
                 rows = self.squeeze_keyboard(rows)
@@ -117,7 +122,7 @@ class VkAdapter(BaseAdapter):
             for new_size, b in zip(sizes, new_buttons):
                 n = len(b['action']['label'])
                 if n > new_size:
-                    b['action']['label'] = b['action']['label'][:new_size - 3] + '...'
+                    b['action']['label'] = b['action']['label'][:new_size - 1] + '…'
             # update the rows
             rows = rows[:best_i - 1] + [new_buttons] + rows[best_i + 1:]
         return rows
