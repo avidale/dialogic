@@ -38,7 +38,7 @@ class Response:
         self.image_url = image_url  # todo: support them in Facebook as well
         self.sound_url = sound_url
         self.gallery = gallery
-        assert self.gallery is None or isinstance(self.gallery, controls.Gallery)
+        assert self.gallery is None or isinstance(self.gallery, (controls.Gallery, controls.ImageGallery))
         self.image = image
         assert self.image is None or isinstance(self.image, controls.BigImage)
         self.raw_response = raw_response

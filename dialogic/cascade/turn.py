@@ -4,7 +4,7 @@ import logging
 from dialogic.dialog import Context, Response
 from dialogic.dialog.names import COMMANDS
 from dialogic.utils.content_manager import YandexImageAPI
-from dialogic.nlg.controls import Gallery as VisualGallery, BigImage
+from dialogic.nlg.controls import Gallery as VisualGallery, BigImage, ImageGallery
 from typing import Dict, List, Optional, Union, Tuple
 
 logger = logging.getLogger(__name__)
@@ -143,7 +143,7 @@ class DialogTurn:
             )
             if isinstance(self.card, BigImage):
                 r.image = self.card
-            elif isinstance(self.card, VisualGallery):
+            elif isinstance(self.card, (VisualGallery, ImageGallery)):
                 r.gallery = self.card
             if self.image_id:
                 r.image_id = self.image_id
