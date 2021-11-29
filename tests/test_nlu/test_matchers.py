@@ -158,3 +158,26 @@ def test_joint_matcher_with_regex():
     jm = matchers.make_matcher_with_regex(base_matcher=matchers.ExactMatcher(), intents=intents)
     assert jm.aggregate_scores('an a') == {'a': 1}
     assert jm.aggregate_scores('aaaa') == {'a': 1}
+
+
+def test_edlib_matcher():
+    matcher = matchers.EdlibMatcher()
+    matcher.fit(sample_texts, sample_labels)
+    assert matcher.match('сколько времени') == ('get_time', 1)
+    assert matcher.match('мой дорогой сколько времени давно тебя не видел') == ('get_time', 1)
+    assert matcher.match('мой дорогой сколько время давно тебя не видел') == ('get_time', 0.8)
+
+    matcher = matchers.EdlibMatcher(ignore_suffix=True, ignore_prefix=False)
+    matcher.fit(sample_texts, sample_labels)
+    assert matcher.match('сколько времени ыыыыы') == ('get_time', 1)
+    assert matcher.match('ыыыыы сколько времени') == ('get_time', 0.6)
+
+    matcher = matchers.EdlibMatcher(ignore_suffix=False, ignore_prefix=True)
+    matcher.fit(sample_texts, sample_labels)
+    assert matcher.match('сколько времени ыыыыы') == ('get_time', 0.6)
+    assert matcher.match('ыыыыы сколько времени') == ('get_time', 1)
+
+    matcher = matchers.EdlibMatcher(ignore_suffix=False, ignore_prefix=False)
+    matcher.fit(sample_texts, sample_labels)
+    assert matcher.match('сколько времени ыыыыы') == ('get_time', 0.6)
+    assert matcher.match('ыыыыы сколько времени') == ('get_time', 0.6)

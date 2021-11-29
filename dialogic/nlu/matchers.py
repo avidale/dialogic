@@ -1,4 +1,9 @@
 import math
+try:
+    import edlib
+except ImportError:
+    edlib = None
+
 import textdistance
 import re
 import typing
@@ -217,6 +222,11 @@ class RegexMatcher(BaseMatcher):
         return re
 
     def fit(self, texts, labels):
+        self.expressions = []
+        self.labels = []
+        self.partial_fit(texts=texts, labels=labels)
+
+    def partial_fit(self, texts, labels):
         parts = defaultdict(list)
         for text, label in zip(texts, labels):
             parts[label].append(text)
@@ -332,6 +342,36 @@ class LevenshteinMatcher(TextDistanceMatcher):
         kwargs['by_words'] = False
         kwargs['metric'] = 'levenshtein'
         super(LevenshteinMatcher, self).__init__(**kwargs)
+
+
+class EdlibMatcher(PairwiseMatcher):
+    """ Matches by edit distance relative to the reference text. """
+    def __init__(self, ignore_suffix=True, ignore_prefix=True, **kwargs):
+        super(EdlibMatcher, self).__init__(**kwargs)
+        if edlib is None:
+            raise ValueError('LevenshteinSubstringMatcher requires the package edlib to be installed')
+        self.reverse = False
+        if ignore_prefix and not ignore_suffix:
+            # only prefix or infix matching is supported, see https://github.com/Martinsos/edlib#alignment-methods
+            self.reverse = True
+            self.strategy = 'SHW'
+        elif ignore_suffix and not ignore_prefix:
+            self.strategy = 'SHW'
+        elif ignore_suffix and ignore_prefix:
+            self.strategy = 'HW'
+        else:
+            self.strategy = 'NW'
+
+    def preprocess(self, text):
+        text = super(EdlibMatcher, self).preprocess(text)
+        if self.reverse:
+            text = text[::-1]
+        return text
+
+    def compare(self, one, another):
+        # expecting that 'one' is the query and 'another' is the target within thee query
+        x = edlib.align(another, one, mode=self.strategy)
+        return 1 - x['editDistance'] / max(min(len(one), len(another)), 1)
 
 
 class JaccardMatcher(PairwiseMatcher):
