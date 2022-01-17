@@ -61,10 +61,13 @@ class MongoBasedStorage(BaseStorage):
     VALUE_NAME = 'value'
 
     def __init__(self, database=None, collection_name='sessions', collection=None):
-        assert database or collection
+        assert database is not None or collection is not None
         super(MongoBasedStorage, self).__init__()
         # we assume that the database has PyMongo interface
-        self._collection = collection or database.get_collection(collection_name)
+        if collection is None:
+            self._collection = database.get_collection(collection_name)
+        else:
+            self._collection = collection
         database_utils.ensure_mongo_index(index_name=self.KEY_NAME, collection=self._collection)
 
     def get(self, key):
