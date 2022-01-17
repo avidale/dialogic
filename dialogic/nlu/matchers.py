@@ -124,7 +124,7 @@ class AggregationMatcher(BaseMatcher):
     def __init__(self, matchers, **kwargs):
         super(AggregationMatcher, self).__init__(**kwargs)
         assert len(matchers) > 0, 'list of matchers should be non-empty'
-        self.matchers = matchers
+        self.matchers: typing.List[BaseMatcher] = matchers
 
     def fit(self, texts, labels):
         for m in self.matchers:

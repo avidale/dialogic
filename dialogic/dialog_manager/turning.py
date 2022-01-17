@@ -11,7 +11,7 @@ from dialogic.dialog import Context, Response
 from dialogic.dialog_manager import CascadableDialogManager
 from dialogic.nlu import basic_nlu
 from dialogic.nlu.basic_nlu import fast_normalize
-from dialogic.nlu.matchers import TFIDFMatcher, TextNormalization, make_matcher_with_regex
+from dialogic.nlu.matchers import TFIDFMatcher, TextNormalization, make_matcher_with_regex, AggregationMatcher
 
 logger = logging.getLogger(__name__)
 
@@ -27,6 +27,7 @@ class TurnDialogManager(CascadableDialogManager):
             matcher_threshold=0.8,
             add_basic_nlu=True,
             turn_cls: Type[DialogTurn] = None,
+            reset_stage=True,
             **kwargs
     ):
         super(TurnDialogManager, self).__init__(**kwargs)
@@ -37,9 +38,10 @@ class TurnDialogManager(CascadableDialogManager):
         self.intents_file = intents_file
         self.expressions_file = expressions_file
         self.intents = {}
-        self.intent_matcher = None
+        self.intent_matcher: AggregationMatcher = None
         self.matcher_threshold = matcher_threshold
         self.add_basic_nlu = add_basic_nlu
+        self.reset_stage = reset_stage
 
         if intents_file:
             self.load_intents(intents_file=intents_file)
@@ -83,8 +85,12 @@ class TurnDialogManager(CascadableDialogManager):
         logger.debug(f'DM response took {time.time() - t} seconds')
         return response
 
-    def nlu(self, ctx: Context) -> Tuple[str, Dict[str, float], Dict[str, Dict]]:
+    def normalize_text(self, ctx: Context):
         text = fast_normalize(ctx.message_text or '')
+        return text
+
+    def nlu(self, ctx: Context) -> Tuple[str, Dict[str, float], Dict[str, Dict]]:
+        text = self.normalize_text(ctx=ctx)
         if self.intent_matcher:
             intents = self.intent_matcher.aggregate_scores(text)
         else:
@@ -110,7 +116,7 @@ class TurnDialogManager(CascadableDialogManager):
         if not ctx.user_object:
             ctx.add_user_object({})
         if ctx.session_is_new():
-            if 'stage' in ctx.user_object:
+            if 'stage' in ctx.user_object and self.reset_stage:
                 del ctx.user_object['stage']
             ctx.user_object['sessions_count'] = ctx.user_object.get('sessions_count', 0) + 1
 
