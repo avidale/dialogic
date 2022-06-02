@@ -12,3 +12,9 @@
 
 - q: как дела # alternatively, the question and/or the answer may consist of a single text
   a: Нормально
+
+- q:  # initial message
+    - ''
+    - '/start'
+  a:
+    - Привет! Это пример чатбота на платформе dialogic, в котором используется FAQ и болталка. О чём поболтаем?
