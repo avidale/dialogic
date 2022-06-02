@@ -1,0 +1,14 @@
+# FAQ config is a list of Q&A pairs
+- q: # a question may contain a list of possible patterns
+  - привет
+  - здравствуй
+  a: # an answer may contain a list of alternatives (to choose at random)
+  - Привет-привет!
+  - Дратути!
+  - И вам доброго времени суток, человек.
+  s: # there may be one or more suggest buttons
+  - Как дела?
+  - Что ты умеешь?
+
+- q: как дела # alternatively, the question and/or the answer may consist of a single text
+  a: Нормально
